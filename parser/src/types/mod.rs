@@ -7,6 +7,7 @@ pub mod namespace;
 pub mod type_alias;
 pub mod type_annotations;
 pub mod type_declarations;
+pub mod unified_identifier;
 
 pub use interface::InterfaceDeclaration;
 pub use type_annotations::TypeAnnotation;

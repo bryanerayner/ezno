@@ -142,6 +142,60 @@ type Something<T, V extends keyof T> = { [P in keyof T]: V }
 }
 
 #[test]
+fn mapped_type_with_whitepace_names() {
+	let input = r"
+type Record with whitespace<T extends string, V> = { [P in T]: V };
+type Something<T extends string, V> = { [P in T as `get${P}`]: V };
+type Something<T, V extends keyof T> = { [P in keyof T]: V }
+
+type Some Whitespace Name = Record with whitespace<'abcd' | '1e23', '234235egre', boolean>;
+
+
+
+
+"
+	.trim();
+
+	let parse_options = ParseOptions { type_definition_module: true, ..Default::default() };
+
+	let module = Module::from_string(input.to_owned(), parse_options).unwrap();
+	let output = module.to_string(&ToStringOptions::typescript());
+
+	assert_eq!(output, input);
+}
+
+
+#[test]
+fn mapped_type_with_tagged_members() {
+	let input = r"
+
+type SomethingWithTags<T> = {
+	@original
+	[P in keyof T]: T[P]
+
+	@getters
+	[P in T as `get${P}`]: () => T[P]
+}
+
+type SomethingWithTagsGetterNames<T> = SomethingWithTags<T>[@getters]
+
+type SomethingWithTagsOriginalPropertyNames<T> = SomethingWithTags<T>[@getters]
+
+
+
+"
+	.trim();
+
+	let parse_options = ParseOptions { type_definition_module: true, ..Default::default() };
+
+	let module = Module::from_string(input.to_owned(), parse_options).unwrap();
+	let output = module.to_string(&ToStringOptions::typescript());
+
+	assert_eq!(output, input);
+}
+
+
+#[test]
 fn jsx_nuances() {
 	let input = r"
 function x(a: <T>(a: number, b: T) => T) {}
