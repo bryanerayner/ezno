@@ -1,4 +1,6 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, Eq)]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
+#[cfg_attr(feature = "self-rust-tokenize", derive(self_rust_tokenize::SelfRustTokenize))]
 pub struct UnifiedIdentifier {
     original: String,        // Original spelling (kept for debugging/round‑tripping)
     normalized: Vec<String>, // Lower‑case words after unification
@@ -123,6 +125,12 @@ impl UnifiedIdentifier {
             original: original.to_owned(),
             normalized: normalize(original),
         }
+    }
+
+    /// Returns the identifier exactly as it appeared in the source code.
+    #[must_use]
+    pub fn original(&self) -> &str {
+        &self.original
     }
 }
 

@@ -360,11 +360,11 @@ impl<'a> Lexer<'a> {
 		self.head += count;
 	}
 
-	pub fn parse_identifier(
-		&mut self,
-		location: &'static str,
-		check_reserved: bool,
-	) -> Result<&'a str, ParseError> {
+        pub fn parse_identifier(
+                &mut self,
+                location: &'static str,
+                check_reserved: bool,
+        ) -> Result<&'a str, ParseError> {
 		enum State {
 			Standard,
 			StartOfUnicode,
@@ -556,13 +556,25 @@ impl<'a> Lexer<'a> {
 		// If left over
 		let is_invalid =
 			check_reserved && !crate::lexer::utilities::is_valid_variable_identifier(current);
-		if is_invalid {
-			Err(ParseError::new(ParseErrors::ReservedIdentifier, start.with_length(current.len())))
-		} else {
-			self.head += current.len() as u32;
-			Ok(current)
-		}
-	}
+                if is_invalid {
+                        Err(ParseError::new(ParseErrors::ReservedIdentifier, start.with_length(current.len())))
+                } else {
+                        self.head += current.len() as u32;
+                        Ok(current)
+                }
+        }
+
+        /// Parse an identifier and immediately convert it into a [`UnifiedIdentifier`].
+        /// This is useful for identifiers where stylistic differences should be ignored
+        /// such as type names or object property keys.
+        pub fn parse_unified_identifier(
+                &mut self,
+                location: &'static str,
+                check_reserved: bool,
+        ) -> Result<crate::types::unified_identifier::UnifiedIdentifier, ParseError> {
+                let ident = self.parse_identifier(location, check_reserved)?;
+                Ok(crate::types::unified_identifier::UnifiedIdentifier::new(ident))
+        }
 
 	// Will append the length on `until`
 	pub fn parse_until(&mut self, until: &str) -> Result<&'a str, ()> {
