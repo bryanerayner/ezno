@@ -261,7 +261,7 @@ mod ast {
 /// Data used when visiting AST
 mod structures {
 	use crate::{
-		property_key::{AlwaysPublic, PublicOrPrivate}, types::unified_identifier::UnifiedIdentifier, Statement, VariableField, VariableIdentifier
+		property_key::{AlwaysPublic, PublicOrPrivate}, types::unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier}, Statement, VariableField, VariableIdentifier
 	};
 
 	use super::{
@@ -340,7 +340,7 @@ mod structures {
 	#[derive(Debug)]
 	pub enum ImmutableVariableOrProperty<'a> {
 		// TODO maybe WithComment on some of these
-		VariableFieldName(UnifiedIdentifier, &'a Span),
+		VariableFieldName(&'a UnifiedIdentifier<'a>, &'a Span),
 		// TODO these should maybe only be the spread variables
 		ArrayDestructuringMember(&'a ArrayDestructuringField<VariableField>),
 		ObjectDestructuringMember(&'a WithComment<ObjectDestructuringField<VariableField>>),
@@ -352,7 +352,7 @@ mod structures {
 
 	#[derive(Debug)]
 	pub enum MutableVariableOrProperty<'a> {
-		VariableFieldName(UnifiedIdentifier<'a>),
+		VariableFieldName(&'a mut StringUnifiedIdentifier),
 		// TODO these should maybe only be the spread variables
 		ArrayDestructuringMember(&'a mut ArrayDestructuringField<VariableField>),
 		ObjectDestructuringMember(&'a mut WithComment<ObjectDestructuringField<VariableField>>),
@@ -374,7 +374,7 @@ mod structures {
 				ImmutableVariableOrProperty::ObjectDestructuringMember(o) => {
 					match o.get_ast_ref() {
 						ObjectDestructuringField::Name(VariableIdentifier::Standard(a, ..), ..) => {
-							Some(a.as_str())
+							Some(a.original_str())
 						}
 						_ => None,
 					}
@@ -382,7 +382,7 @@ mod structures {
 				ImmutableVariableOrProperty::FunctionName(name)
 				| ImmutableVariableOrProperty::ClassName(name) => {
 					if let Some(VariableIdentifier::Standard(name, _)) = name {
-						Some(name.as_str())
+						Some(name.original_str())
 					} else {
 						None
 					}

@@ -3,7 +3,7 @@
 use std::fmt::Debug;
 
 use crate::{
-	bracketed_items_from_reader, derive_ASTNode, property_key::PropertyKey, types::unified_identifier::UnifiedIdentifier, visiting::{ImmutableVariableOrProperty, MutableVariableOrProperty}, ASTNode, Expression, ListItem, Marker, ParseError, ParseErrors, ParseResult, Span, VisitOptions, Visitable, WithComment
+	bracketed_items_from_reader, derive_ASTNode, property_key::PropertyKey, types::unified_identifier::{UnifiedIdentifier,StringUnifiedIdentifier}, visiting::{ImmutableVariableOrProperty, MutableVariableOrProperty}, ASTNode, Expression, ListItem, Marker, ParseError, ParseErrors, ParseResult, Span, VisitOptions, Visitable, WithComment
 };
 
 use derive_partial_eq_extras::PartialEqExtras;
@@ -15,7 +15,7 @@ use iterator_endiate::EndiateIteratorExt;
 #[partial_eq_ignore_types(Span)]
 #[get_field_by_type_target(Span)]
 pub enum VariableIdentifier {
-	Standard(UnifiedIdentifier, Span),
+	Standard(StringUnifiedIdentifier, Span),
 	// TODO does this need Span
 	#[cfg_attr(feature = "self-rust-tokenize", self_tokenize_field(0))]
 	Marker(
@@ -40,7 +40,7 @@ impl ASTNode for VariableIdentifier {
 			let span = start.with_length(0);
 			Ok(Self::Marker(reader.new_partial_point_marker(span), span))
 		} else {
-			Ok(Self::Standard(UnifiedIdentifier::new(identifier), position))
+			Ok(Self::Standard(StringUnifiedIdentifier::new(identifier), position))
 		}
 	}
 
@@ -51,7 +51,7 @@ impl ASTNode for VariableIdentifier {
 		_local: crate::LocalToStringInformation,
 	) {
 		match self {
-			VariableIdentifier::Standard(name, _) => buf.push_str(name.as_str()),
+			VariableIdentifier::Standard(name, _) => buf.push_str(name.original_str()),
 			VariableIdentifier::Marker(_, _) => {
 				assert!(!options.expect_markers, "variable marker attempted to convert to string");
 			}
@@ -63,7 +63,7 @@ impl VariableIdentifier {
 	#[must_use]
 	pub fn as_option_str(&self) -> Option<&str> {
 		match self {
-			VariableIdentifier::Standard(s, _) => Some(s.as_str()),
+			VariableIdentifier::Standard(s, _) => Some(s.original_str()),
 			VariableIdentifier::Marker(_, _) => None,
 		}
 	}
@@ -361,7 +361,7 @@ impl<T: DestructuringFieldInto> ASTNode for ObjectDestructuringField<T> {
 				.then(|| Expression::from_reader(reader).map(Box::new))
 				.transpose()?;
 
-			let standard = VariableIdentifier::Standard(UnifiedIdentifier::new(name.as_str()), key_pos);
+			let standard = VariableIdentifier::Standard(StringUnifiedIdentifier::new(name.as_str()), key_pos);
 			let annotation = T::type_annotation_from_reader(reader)?;
 			let position = if let Some(ref dv) = default_value {
 				key_pos.union(dv.get_position())
@@ -421,7 +421,8 @@ impl Visitable for VariableField {
 		match self {
 			VariableField::Name(id) => {
 				if let VariableIdentifier::Standard(name, pos) = id {
-					let item = ImmutableVariableOrProperty::VariableFieldName(name.clone(), pos);
+					let unified_name= name.as_unified();
+					let item = ImmutableVariableOrProperty::VariableFieldName(&unified_name, pos);
 					visitors.visit_variable(&item, data, chain);
 				}
 			}
@@ -445,7 +446,7 @@ impl Visitable for VariableField {
 			VariableField::Name(identifier) => {
 				if let VariableIdentifier::Standard(name, _span) = identifier {
 					visitors.visit_variable_mut(
-						&mut MutableVariableOrProperty::VariableFieldName(name.clone()),
+						&mut MutableVariableOrProperty::VariableFieldName(name),
 						data,
 						chain,
 					);
