@@ -6,6 +6,7 @@ pub struct UnifiedIdentifier<'a> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 enum NormalizedData<'a> {
     Str(&'a str),
     StrWithoutHyphens(&'a str)
