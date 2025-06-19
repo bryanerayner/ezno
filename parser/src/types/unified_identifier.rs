@@ -1,9 +1,21 @@
 #[derive(Debug, Clone, Eq)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
-#[cfg_attr(feature = "self-rust-tokenize", derive(self_rust_tokenize::SelfRustTokenize))]
-pub struct UnifiedIdentifier {
-    original: String,        // Original spelling (kept for debugging/round‑tripping)
-    normalized: Vec<String>, // Lower‑case words after unification
+pub struct UnifiedIdentifier<'a> {
+    original: &'a str,        // Original spelling (kept for debugging/round‑tripping)
+    normalized: Vec<NormalizedData<'a>>, // Lower‑case words after unification
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum NormalizedData<'a> {
+    Str(&'a str),
+    StrWithoutHyphens(&'a str)
+}
+
+impl<'a> UnifiedIdentifier<'a> {
+    /// Returns the identifier exactly as it appeared in the source code as a `&str`.
+    pub fn as_str(&self) -> &str {
+        &self.original
+    }
 }
 
 /* -------------------------------------------------------------------------
@@ -19,55 +31,68 @@ pub struct UnifiedIdentifier {
 /// * `UPPER* → UpperLower{2+}` ⇒ split before last UPPER so that
 ///   `HTTPServer` ⇒ `HTTP` + `Server` but `APIs` stays whole.
 /// * Letter → digit transition ⇒ new word (`GL3DModel`).
-fn split_pascal_case(s: &str) -> Vec<String> {
+fn split_pascal_case<'a>(s: &'a str) -> Vec<NormalizedData<'a>> {
     let chars: Vec<char> = s.chars().collect();
-    let mut words = Vec::<String>::new();
-    let mut cur = String::new();
+    let mut words = Vec::new();
+    let mut start = 0;
+    let len = chars.len();
 
-    for i in 0..chars.len() {
-        let ch = chars[i];
-
-        if !cur.is_empty() {
+    let mut i = 1;
+    while i <= len {
+        let boundary = if i == len {
+            true
+        } else {
+            let ch = chars[i];
             let prev = chars[i - 1];
-            let mut boundary = false;
 
             if ch.is_uppercase() {
                 if prev.is_lowercase() {
-                    boundary = true;
+                    true
                 } else if prev.is_uppercase() {
                     if let Some(&next) = chars.get(i + 1) {
                         if next.is_lowercase() {
                             // count subsequent lowers ≥2 → boundary
                             let mut j = i + 1;
                             let mut lowers = 0;
-                            while j < chars.len() && chars[j].is_lowercase() {
+                            while j < len && chars[j].is_lowercase() {
                                 lowers += 1;
                                 j += 1;
                             }
-                            if lowers > 1 {
-                                boundary = true;
-                            }
+                            lowers > 1
+                        } else {
+                            false
                         }
+                    } else {
+                        false
                     }
+                } else {
+                    false
                 }
             } else if ch.is_ascii_digit() && !prev.is_ascii_digit() {
-                boundary = true;
+                true
+            } else {
+                false
             }
+        };
 
-            if boundary {
-                words.push(cur.to_ascii_lowercase());
-                cur.clear();
+        if boundary {
+            if start < i {
+                let word = &s[start..i];
+                words.push(NormalizedData::Str(word));
             }
+            start = i;
         }
-
-        cur.push(ch);
+        i += 1;
     }
 
-    if !cur.is_empty() {
-        words.push(cur.to_ascii_lowercase());
-    }
-
+    // Lowercase all words and wrap as NormalizedData::Str
     words
+        .into_iter()
+        .map(|nd| match nd {
+            NormalizedData::Str(w) => NormalizedData::Str(w),
+            _ => nd,
+        })
+        .collect()
 }
 
 /* -------------------------------------------------------------------------
@@ -87,7 +112,7 @@ fn split_pascal_case(s: &str) -> Vec<String> {
 /// 2. **Pure kebab‑case** – *must* contain a `-`, **and** contain *neither*
 ///    spaces nor underscores.  Split on `-`.
 /// 3. Otherwise, treat as Pascal/camel (possibly with acronyms).
-fn normalize(id: &str) -> Vec<String> {
+fn normalize<'a>(id: &'a str) -> Vec<NormalizedData<'a>> {
     if id.contains(' ') || id.contains('_') {
         // Style #1 – tokens separated by space/underscore. We *also* fold away
         // internal hyphens **except** when the token *starts* with a hyphen or
@@ -100,10 +125,10 @@ fn normalize(id: &str) -> Vec<String> {
                     None
                 } else if t.starts_with('-') || t.ends_with('-') || t == "-" {
                     // Leading *or* trailing hyphen ⇒ syntactically significant → keep.
-                    Some(t.to_ascii_lowercase())
+                    Some(NormalizedData::Str(t))
                 } else {
                     // Internal brand‑style hyphens can be erased.
-                    Some(t.replace('-', "").to_ascii_lowercase())
+                    Some(NormalizedData::StrWithoutHyphens(t))
                 }
             })
             .collect()
@@ -111,7 +136,7 @@ fn normalize(id: &str) -> Vec<String> {
         // Style #2 – strict kebab (no spaces/underscores allowed).
         id.split('-')
             .filter(|s| !s.is_empty())
-            .map(|s| s.to_ascii_lowercase())
+            .map(|s| NormalizedData::Str(s))
             .collect()
     } else {
         // Style #3 – Pascal/camel/acronyms.
@@ -119,10 +144,10 @@ fn normalize(id: &str) -> Vec<String> {
     }
 }
 
-impl UnifiedIdentifier {
-    pub fn new(original: &str) -> Self {
+impl<'a> UnifiedIdentifier<'a> {
+    pub fn new(original: &'a str) -> Self {
         Self {
-            original: original.to_owned(),
+            original: original,
             normalized: normalize(original),
         }
     }
@@ -134,17 +159,17 @@ impl UnifiedIdentifier {
     }
 }
 
-impl UnifiedIdentifier {
-    /// Helper: concatenate normalized pieces without separators.  This gives a
-    /// canonical string that ignores stylistic word boundaries but *preserves*
-    /// internal punctuation such as hyphens (important for distinguishing
-    /// `one-variable` from `onevariable`).
-    fn squash(&self) -> String {
-        self.normalized.join("")
-    }
-}
+// impl<'a> UnifiedIdentifier<'a> {
+//     /// Helper: concatenate normalized pieces without separators.  This gives a
+//     /// canonical string that ignores stylistic word boundaries but *preserves*
+//     /// internal punctuation such as hyphens (important for distinguishing
+//     /// `one-variable` from `onevariable`).
+//     fn squash(&self) -> String {
+//         self.normalized.join("")
+//     }
+// }
 
-impl PartialEq for UnifiedIdentifier {
+impl<'a> PartialEq for UnifiedIdentifier<'a> {
     /// Two identifiers are considered equal if their *squashed* (fully
     /// concatenated, lower‑case) forms match.  This makes
     ///
@@ -157,7 +182,29 @@ impl PartialEq for UnifiedIdentifier {
     /// the hyphen is retained inside tokens when it is syntactically
     /// significant.
     fn eq(&self, other: &Self) -> bool {
-        self.squash() == other.squash()
+        if self.normalized.len() != other.normalized.len() {
+            return false;
+        }
+
+        for (a, b) in self.normalized.iter().zip(other.normalized.iter()) {
+            let (a_str, a_strip) = match a {
+                NormalizedData::Str(s) => (*s, false),
+                NormalizedData::StrWithoutHyphens(s) => (*s, true),
+            };
+            let (b_str, b_strip) = match b {
+                NormalizedData::Str(s) => (*s, false),
+                NormalizedData::StrWithoutHyphens(s) => (*s, true),
+            };
+
+            let a_cmp = if a_strip { a_str.replace('-', "") } else { a_str.to_string() };
+            let b_cmp = if b_strip { b_str.replace('-', "") } else { b_str.to_string() };
+
+            if !a_cmp.eq_ignore_ascii_case(&b_cmp) {
+                return false;
+            }
+        }
+
+        true
     }
 }
 
@@ -185,7 +232,7 @@ mod tests {
         let a = UnifiedIdentifier::new("APIs");
         let b = UnifiedIdentifier::new("apis");
         assert_eq!(a, b);
-        assert_eq!(a.normalized, vec!["apis"]);
+        assert_eq!(a.normalized, vec![NormalizedData::Str("apis")]);
     }
 
     #[test]
@@ -205,7 +252,11 @@ mod tests {
     #[test]
     fn xml_http() {
         let a = UnifiedIdentifier::new("XMLHttpRequest");
-        assert_eq!(a.normalized, vec!["xml", "http", "request"]);
+        assert_eq!(a.normalized, vec![
+            NormalizedData::Str("xml"),
+            NormalizedData::Str("http"),
+            NormalizedData::Str("request")
+            ]);
     }
 
     #[test]
@@ -334,6 +385,10 @@ mod tests {
     #[test]
     fn digit_boundary() {
         let a = UnifiedIdentifier::new("GL3DModel");
-        assert_eq!(a.normalized, vec!["gl", "3d", "model"]);
+        assert_eq!(a.normalized, vec![
+            NormalizedData::Str("gl"),
+            NormalizedData::Str("3d"),
+            NormalizedData::Str("model")
+            ]);
     }
 }

@@ -40,7 +40,7 @@ impl ASTNode for VariableIdentifier {
 			let span = start.with_length(0);
 			Ok(Self::Marker(reader.new_partial_point_marker(span), span))
 		} else {
-			Ok(Self::Standard(identifier.to_owned(), position))
+			Ok(Self::Standard(UnifiedIdentifier::new(identifier), position))
 		}
 	}
 
@@ -51,7 +51,7 @@ impl ASTNode for VariableIdentifier {
 		_local: crate::LocalToStringInformation,
 	) {
 		match self {
-			VariableIdentifier::Standard(name, _) => buf.push_str(name),
+			VariableIdentifier::Standard(name, _) => buf.push_str(name.as_str()),
 			VariableIdentifier::Marker(_, _) => {
 				assert!(!options.expect_markers, "variable marker attempted to convert to string");
 			}
@@ -361,7 +361,7 @@ impl<T: DestructuringFieldInto> ASTNode for ObjectDestructuringField<T> {
 				.then(|| Expression::from_reader(reader).map(Box::new))
 				.transpose()?;
 
-			let standard = VariableIdentifier::Standard(name, key_pos);
+			let standard = VariableIdentifier::Standard(UnifiedIdentifier::new(name.as_str()), key_pos);
 			let annotation = T::type_annotation_from_reader(reader)?;
 			let position = if let Some(ref dv) = default_value {
 				key_pos.union(dv.get_position())
@@ -421,7 +421,7 @@ impl Visitable for VariableField {
 		match self {
 			VariableField::Name(id) => {
 				if let VariableIdentifier::Standard(name, pos) = id {
-					let item = ImmutableVariableOrProperty::VariableFieldName(name, pos);
+					let item = ImmutableVariableOrProperty::VariableFieldName(name.clone(), pos);
 					visitors.visit_variable(&item, data, chain);
 				}
 			}
@@ -445,7 +445,7 @@ impl Visitable for VariableField {
 			VariableField::Name(identifier) => {
 				if let VariableIdentifier::Standard(name, _span) = identifier {
 					visitors.visit_variable_mut(
-						&mut MutableVariableOrProperty::VariableFieldName(name),
+						&mut MutableVariableOrProperty::VariableFieldName(name.clone()),
 						data,
 						chain,
 					);

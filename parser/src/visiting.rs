@@ -19,6 +19,8 @@ mod ast {
 
 	use crate::block::{BlockLike, BlockLikeMut};
 
+	use crate::types::unified_identifier::UnifiedIdentifier;
+
 	use super::{
 		BlockItem, BlockItemMut, Chain, Expression, ImmutableVariableOrProperty,
 		MutableVariableOrProperty, VisitorMutReceiver, VisitorReceiver,
@@ -259,8 +261,7 @@ mod ast {
 /// Data used when visiting AST
 mod structures {
 	use crate::{
-		property_key::{AlwaysPublic, PublicOrPrivate},
-		Statement, VariableField, VariableIdentifier,
+		property_key::{AlwaysPublic, PublicOrPrivate}, types::unified_identifier::UnifiedIdentifier, Statement, VariableField, VariableIdentifier
 	};
 
 	use super::{
@@ -339,7 +340,7 @@ mod structures {
 	#[derive(Debug)]
 	pub enum ImmutableVariableOrProperty<'a> {
 		// TODO maybe WithComment on some of these
-		VariableFieldName(&'a str, &'a Span),
+		VariableFieldName(UnifiedIdentifier, &'a Span),
 		// TODO these should maybe only be the spread variables
 		ArrayDestructuringMember(&'a ArrayDestructuringField<VariableField>),
 		ObjectDestructuringMember(&'a WithComment<ObjectDestructuringField<VariableField>>),
@@ -351,7 +352,7 @@ mod structures {
 
 	#[derive(Debug)]
 	pub enum MutableVariableOrProperty<'a> {
-		VariableFieldName(&'a mut String),
+		VariableFieldName(UnifiedIdentifier<'a>),
 		// TODO these should maybe only be the spread variables
 		ArrayDestructuringMember(&'a mut ArrayDestructuringField<VariableField>),
 		ObjectDestructuringMember(&'a mut WithComment<ObjectDestructuringField<VariableField>>),
@@ -365,7 +366,10 @@ mod structures {
 		#[must_use]
 		pub fn get_variable_name(&self) -> Option<&'a str> {
 			match self {
-				ImmutableVariableOrProperty::VariableFieldName(name, _) => Some(name),
+				ImmutableVariableOrProperty::VariableFieldName(name, _) => {
+					// Ensure that name is tied to lifetime 'a
+					Some(name.as_str())
+				}
 				ImmutableVariableOrProperty::ArrayDestructuringMember(_) => None,
 				ImmutableVariableOrProperty::ObjectDestructuringMember(o) => {
 					match o.get_ast_ref() {
@@ -378,7 +382,7 @@ mod structures {
 				ImmutableVariableOrProperty::FunctionName(name)
 				| ImmutableVariableOrProperty::ClassName(name) => {
 					if let Some(VariableIdentifier::Standard(name, _)) = name {
-						Some(name)
+						Some(name.as_str())
 					} else {
 						None
 					}
