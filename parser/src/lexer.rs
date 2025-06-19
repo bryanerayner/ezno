@@ -397,6 +397,13 @@ impl<'a> Lexer<'a> {
 			));
 		}
 
+		enum StandardState {
+			LookingForFirstCharacter,
+			InsideValidWord,
+			EncounteredSingleSpace
+		}
+		let mut standard_state = StandardState::LookingForFirstCharacter;
+
 		for (idx, chr) in iter {
 			match state {
 				State::UnicodeEscape(steps) => {
@@ -454,23 +461,85 @@ impl<'a> Lexer<'a> {
 				State::Standard => {
 					if let '\\' = chr {
 						state = State::StartOfUnicode;
+						standard_state = StandardState::LookingForFirstCharacter;
 					} else {
-						// Note `is_alphanumeric` here
-						let is_valid = chr.is_alphanumeric() || chr == '_' || chr == '$';
-						if !is_valid {
-							let value = &current[..idx];
-							let is_invalid = check_reserved
-								&& !crate::lexer::utilities::is_valid_variable_identifier(value);
-							let result = if is_invalid {
-								Err(ParseError::new(
-									ParseErrors::ReservedIdentifier,
-									start.with_length(value.len()),
-								))
-							} else {
-								self.head += idx as u32;
-								Ok(value)
-							};
-							return result;
+						match standard_state {
+
+							StandardState::LookingForFirstCharacter => {
+
+								// Note `is_alphanumeric` here
+								let is_valid = chr.is_alphanumeric() || chr == '_' || chr == '$';
+								if !is_valid {
+									let value = &current[..idx];
+									let is_invalid = check_reserved
+									&& !crate::lexer::utilities::is_valid_variable_identifier(value);
+									let result = if is_invalid {
+										Err(ParseError::new(
+											ParseErrors::ReservedIdentifier,
+											start.with_length(value.len()),
+										))
+									} else {
+										self.head += idx as u32;
+										Ok(value)
+									};
+									return result;
+								} else {
+									standard_state = StandardState::InsideValidWord;
+								}
+							},
+							StandardState::InsideValidWord => {
+								
+								// Note `is_alphanumeric` here
+								let still_inside_word = chr.is_alphanumeric() || chr == '_' || chr == '$';
+								if !still_inside_word {
+
+
+									let encountered_hyphen = chr == '-';
+
+									if !encountered_hyphen {
+										let encountered_space = chr == ' ';
+										if (encountered_space) {
+											standard_state = StandardState::EncounteredSingleSpace;
+										} else {		
+											let value = &current[..idx];
+											let is_invalid = check_reserved
+											&& !crate::lexer::utilities::is_valid_variable_identifier(value);
+											let result = if is_invalid {
+												Err(ParseError::new(
+													ParseErrors::ReservedIdentifier,
+													start.with_length(value.len()),
+												))
+											} else {
+												self.head += idx as u32;
+												Ok(value)
+											};
+											return result;
+										}
+									}
+								}
+							},
+							StandardState::EncounteredSingleSpace => {
+								
+								// Note `is_alphanumeric` here
+								let still_inside_word = chr.is_alphanumeric() || chr == '_' || chr == '$';
+								if !still_inside_word {
+									let value = &current[..idx];
+									let is_invalid = check_reserved
+									&& !crate::lexer::utilities::is_valid_variable_identifier(value);
+									let result = if is_invalid {
+										Err(ParseError::new(
+											ParseErrors::ReservedIdentifier,
+											start.with_length(value.len()),
+										))
+									} else {
+										self.head += idx as u32;
+										Ok(value)
+									};
+									return result;
+								} else {
+									standard_state = StandardState::InsideValidWord;
+								}
+							}
 						}
 					}
 				}

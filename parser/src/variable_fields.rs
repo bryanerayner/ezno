@@ -3,11 +3,7 @@
 use std::fmt::Debug;
 
 use crate::{
-	bracketed_items_from_reader, derive_ASTNode,
-	property_key::PropertyKey,
-	visiting::{ImmutableVariableOrProperty, MutableVariableOrProperty},
-	ASTNode, Expression, ListItem, Marker, ParseError, ParseErrors, ParseResult, Span,
-	VisitOptions, Visitable, WithComment,
+	bracketed_items_from_reader, derive_ASTNode, property_key::PropertyKey, types::unified_identifier::UnifiedIdentifier, visiting::{ImmutableVariableOrProperty, MutableVariableOrProperty}, ASTNode, Expression, ListItem, Marker, ParseError, ParseErrors, ParseResult, Span, VisitOptions, Visitable, WithComment
 };
 
 use derive_partial_eq_extras::PartialEqExtras;
@@ -19,7 +15,7 @@ use iterator_endiate::EndiateIteratorExt;
 #[partial_eq_ignore_types(Span)]
 #[get_field_by_type_target(Span)]
 pub enum VariableIdentifier {
-	Standard(String, Span),
+	Standard(UnifiedIdentifier, Span),
 	// TODO does this need Span
 	#[cfg_attr(feature = "self-rust-tokenize", self_tokenize_field(0))]
 	Marker(
