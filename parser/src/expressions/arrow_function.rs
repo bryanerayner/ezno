@@ -1,10 +1,7 @@
 use visitable_derive::Visitable;
 
 use crate::{
-	derive_ASTNode,
-	functions::HeadingAndPosition,
-	functions::{FunctionBased, FunctionParameters, Parameter},
-	ASTNode, Block, Expression, FunctionBase, ParseResult, Span, VariableField, VariableIdentifier,
+	derive_ASTNode, functions::{FunctionBased, FunctionParameters, HeadingAndPosition, Parameter}, types::unified_identifier::StringUnifiedIdentifier, ASTNode, Block, Expression, FunctionBase, ParseResult, Span, VariableField, VariableIdentifier
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -63,7 +60,7 @@ impl FunctionBased for ArrowFunctionBase {
 			let position = start.with_length(name.len());
 			let parameters = vec![Parameter {
 				visibility: (),
-				name: VariableField::Name(VariableIdentifier::Standard(name.to_owned(), position))
+				name: VariableField::Name(VariableIdentifier::Standard(StringUnifiedIdentifier::new(name), position))
 					.into(),
 				type_annotation: None,
 				additionally: None,

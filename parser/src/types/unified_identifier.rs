@@ -18,6 +18,18 @@ impl StringUnifiedIdentifier {
     }
 }
 
+impl From<&str> for StringUnifiedIdentifier {
+    fn from(s: &str) -> Self {
+        StringUnifiedIdentifier::new(s)
+    }
+}
+
+impl From<String> for StringUnifiedIdentifier {
+    fn from(s: String) -> Self {
+        StringUnifiedIdentifier::new(&s)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 enum NormalizedData<'a> {

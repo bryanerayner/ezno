@@ -5,7 +5,7 @@ use get_field_by_type::GetFieldByType;
 use source_map::Span;
 use visitable_derive::Visitable;
 
-use crate::{derive_ASTNode, Marker, ParseError, ParseErrors, Quoted};
+use crate::{derive_ASTNode, types::unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier}, Marker, ParseError, ParseErrors, Quoted};
 
 pub trait ImportOrExport: std::fmt::Debug + Clone + PartialEq + Sync + Send + 'static {
 	const PREFIX: bool;
@@ -161,7 +161,7 @@ impl<U: ImportOrExport> self_rust_tokenize::SelfRustTokenize for ImportExportPar
 #[derive(Debug, Clone, PartialEq)]
 #[apply(derive_ASTNode)]
 pub enum ImportExportName {
-	Reference(String),
+	Reference(StringUnifiedIdentifier),
 	Quoted(String, Quoted),
 	/// For typing here
 	#[cfg_attr(feature = "self-rust-tokenize", self_tokenize_field(0))]
@@ -193,7 +193,7 @@ impl ImportExportName {
 				Ok((ImportExportName::Marker(reader.new_partial_point_marker(position)), position))
 			} else {
 				let position = start.with_length(identifier.len());
-				Ok((ImportExportName::Reference(identifier), position))
+				Ok((ImportExportName::Reference(identifier.into()), position))
 			}
 		}
 	}
@@ -205,7 +205,7 @@ impl ImportExportName {
 		_local: crate::LocalToStringInformation,
 	) {
 		match self {
-			ImportExportName::Reference(alias) => buf.push_str(alias),
+			ImportExportName::Reference(alias) => buf.push_str(alias.original_str()),
 			ImportExportName::Quoted(alias, q) => {
 				buf.push(q.as_char());
 				buf.push_str(alias);

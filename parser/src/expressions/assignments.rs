@@ -342,7 +342,7 @@ impl TryFrom<Expression> for LHSOfAssignment {
 						}
 						ObjectLiteralMember::Shorthand(name, pos) => {
 							ObjectDestructuringField::Name(
-								crate::VariableIdentifier::Standard(name, pos),
+								crate::VariableIdentifier::Standard(name.into(), pos),
 								(),
 								None,
 								pos,
@@ -352,7 +352,7 @@ impl TryFrom<Expression> for LHSOfAssignment {
 							if assignment {
 								if let PropertyKey::Identifier(name, pos, _) = key.get_ast() {
 									ObjectDestructuringField::Name(
-										crate::VariableIdentifier::Standard(name, pos),
+										crate::VariableIdentifier::Standard(name.into(), pos),
 										(),
 										Some(Box::new(value)),
 										pos,

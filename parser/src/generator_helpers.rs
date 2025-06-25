@@ -43,7 +43,7 @@ impl IntoAST<PropertyReference> for &str {
 
 impl IntoAST<VariableIdentifier> for &str {
 	fn into_ast(self) -> VariableIdentifier {
-		VariableIdentifier::Standard(self.to_owned(), source_map::Nullable::NULL)
+		VariableIdentifier::Standard(self.into(), source_map::Nullable::NULL)
 	}
 }
 

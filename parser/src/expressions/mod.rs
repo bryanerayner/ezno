@@ -514,7 +514,7 @@ impl Expression {
 						.starts_with("=>")
 					{
 						let identifier =
-							crate::VariableIdentifier::Standard(name.to_owned(), position);
+							crate::VariableIdentifier::Standard(name.into(), position);
 						let is_async = false;
 						return ArrowFunction::from_reader_with_first_parameter(
 							reader, is_async, identifier,
