@@ -414,6 +414,36 @@ impl StringUnifiedIdentifier {
     }
 }
 
+#[cfg(feature = "self-rust-tokenize")]
+impl<'a> self_rust_tokenize::SelfRustTokenize for UnifiedIdentifier<'a> {
+    fn append_to_token_stream(
+        &self,
+        token_stream: &mut self_rust_tokenize::proc_macro2::TokenStream,
+    ) {
+        let original = self.original;
+        token_stream.extend(
+            self_rust_tokenize::quote!(
+                ezno_parser::types::unified_identifier::UnifiedIdentifier::new(#original)
+            ),
+        );
+    }
+}
+
+#[cfg(feature = "self-rust-tokenize")]
+impl self_rust_tokenize::SelfRustTokenize for StringUnifiedIdentifier {
+    fn append_to_token_stream(
+        &self,
+        token_stream: &mut self_rust_tokenize::proc_macro2::TokenStream,
+    ) {
+        let original = self.original.as_str();
+        token_stream.extend(
+            self_rust_tokenize::quote!(
+                ezno_parser::types::unified_identifier::StringUnifiedIdentifier::new(#original)
+            ),
+        );
+    }
+}
+
 
 
 #[cfg(test)]
