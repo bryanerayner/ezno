@@ -1,4 +1,5 @@
 use source_map::SpanWithSource;
+use unified_identifier::StringUnifiedIdentifier;
 
 use crate::{
 	types::properties::{PropertyKey, Publicity},
@@ -17,7 +18,7 @@ pub enum Assignable<A: crate::ASTImplementation> {
 /// TODO Can this use lifetimes?
 #[derive(Clone)]
 pub enum Reference {
-	Variable(String, SpanWithSource),
+	Variable(StringUnifiedIdentifier, SpanWithSource),
 	Property {
 		on: TypeId,
 		with: PropertyKey<'static>,

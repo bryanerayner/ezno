@@ -1,8 +1,9 @@
 /// Contains definitions of structures around functions
 use std::collections::HashMap;
 
-use parser::types::unified_identifier::StringUnifiedIdentifier;
+use unified_identifier::StringUnifiedIdentifier;
 use source_map::{BaseSpan, Nullable, SpanWithSource};
+use shared_types;
 
 use super::calling::{Callable, CallingContext, CallingInput};
 use crate::{

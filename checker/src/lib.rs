@@ -27,7 +27,9 @@ use context::{
 };
 
 use diagnostics::{TypeCheckError, TypeCheckWarning};
-pub(crate) use utilities::{map::Map, range_map::RangeMap, serialization::BinarySerializable};
+pub(crate) use utilities::{map::Map, range_map::RangeMap};
+pub(crate) use binary_serialize_derive::BinarySerializable;
+pub use shared_types::serialization::BinarySerializable;
 
 use features::{
 	functions::SynthesisableFunction, modules::CouldNotOpenFile, modules::SynthesisedModule,

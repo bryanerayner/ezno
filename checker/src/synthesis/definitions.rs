@@ -1,6 +1,7 @@
 use parser::{
-	ast::{export::Exportable, ExportDeclaration}, types::unified_identifier::UnifiedIdentifier, ASTNode, Declaration, Decorated, Expression, StatementOrDeclaration
+	ast::{export::Exportable, ExportDeclaration}, ASTNode, Declaration, Decorated, Expression, StatementOrDeclaration
 };
+use unified_identifier::UnifiedIdentifier;
 use source_map::SourceId;
 
 use super::classes::synthesise_class_declaration;

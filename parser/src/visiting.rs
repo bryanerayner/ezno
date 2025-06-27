@@ -19,7 +19,7 @@ mod ast {
 
 	use crate::block::{BlockLike, BlockLikeMut};
 
-	use crate::types::unified_identifier::UnifiedIdentifier;
+	use unified_identifier::UnifiedIdentifier;
 
 	use super::{
 		BlockItem, BlockItemMut, Chain, Expression, ImmutableVariableOrProperty,
@@ -261,8 +261,9 @@ mod ast {
 /// Data used when visiting AST
 mod structures {
 	use crate::{
-		property_key::{AlwaysPublic, PublicOrPrivate}, types::unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier}, Statement, VariableField, VariableIdentifier
+		property_key::{AlwaysPublic, PublicOrPrivate}, Statement, VariableField, VariableIdentifier
 	};
+	use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
 
 	use super::{
 		ArrayDestructuringField, ObjectDestructuringField, PropertyKey, SourceId,

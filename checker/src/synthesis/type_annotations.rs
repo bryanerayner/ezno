@@ -25,6 +25,7 @@ use parser::{
 	ASTNode, TypeAnnotation,
 };
 use source_map::SpanWithSource;
+use unified_identifier::StringUnifiedIdentifier;
 
 /// Turns a [`parser::TypeAnnotation`] into [`TypeId`]
 ///
@@ -777,7 +778,7 @@ pub fn synthesise_type_annotation<T: crate::ReadFromFS>(
 				environment.context_type.scope
 			{
 				let infer_type = checking_data.types.register_type(Type::RootPolyType(
-					PolyNature::InferGeneric { name: name.clone(), extends },
+					PolyNature::InferGeneric { name: StringUnifiedIdentifier::new(name), extends },
 				));
 
 				let existing = infer_parameters.insert(name.clone(), infer_type);

@@ -3,8 +3,9 @@
 use std::fmt::Debug;
 
 use crate::{
-	bracketed_items_from_reader, derive_ASTNode, property_key::PropertyKey, types::unified_identifier::{UnifiedIdentifier,StringUnifiedIdentifier}, visiting::{ImmutableVariableOrProperty, MutableVariableOrProperty}, ASTNode, Expression, ListItem, Marker, ParseError, ParseErrors, ParseResult, Span, VisitOptions, Visitable, WithComment
+	bracketed_items_from_reader, derive_ASTNode, property_key::PropertyKey, visiting::{ImmutableVariableOrProperty, MutableVariableOrProperty}, ASTNode, Expression, ListItem, Marker, ParseError, ParseErrors, ParseResult, Span, VisitOptions, Visitable, WithComment
 };
+use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
 
 use derive_partial_eq_extras::PartialEqExtras;
 use get_field_by_type::GetFieldByType;

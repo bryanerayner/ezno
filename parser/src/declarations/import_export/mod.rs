@@ -5,8 +5,8 @@ use get_field_by_type::GetFieldByType;
 use source_map::Span;
 use visitable_derive::Visitable;
 
-use crate::{derive_ASTNode, types::unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier}, Marker, ParseError, ParseErrors, Quoted};
-
+use crate::{derive_ASTNode, Marker, ParseError, ParseErrors, Quoted};
+use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
 pub trait ImportOrExport: std::fmt::Debug + Clone + PartialEq + Sync + Send + 'static {
 	const PREFIX: bool;
 }

@@ -1,7 +1,8 @@
 use visitable_derive::Visitable;
+use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
 
 use crate::{
-	derive_ASTNode, functions::{FunctionBased, FunctionParameters, HeadingAndPosition, Parameter}, types::unified_identifier::StringUnifiedIdentifier, ASTNode, Block, Expression, FunctionBase, ParseResult, Span, VariableField, VariableIdentifier
+	derive_ASTNode, functions::{FunctionBased, FunctionParameters, HeadingAndPosition, Parameter}, ASTNode, Block, Expression, FunctionBase, ParseResult, Span, VariableField, VariableIdentifier
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

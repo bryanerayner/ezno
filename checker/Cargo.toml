@@ -28,6 +28,11 @@ source-map = { version = "0.15", features = [
 
 binary-serialize-derive = { path = "./binary-serialize-derive", version = "0.0.3" }
 
+unified_identifier = { path = "../unified_identifier" }
+
+
+shared_types = { path = "../shared_types" }
+
 temporary-annex = "0.1"
 derive-enum-from-into = "0.2"
 derive-debug-extras = { version = "0.3", features = [

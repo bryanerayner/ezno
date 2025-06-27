@@ -290,10 +290,12 @@ dependencies = [
  "path-absolutize",
  "regress",
  "serde",
+ "shared_types",
  "simple-json-parser",
  "source-map",
  "temporary-annex",
  "tsify",
+ "unified_identifier",
  "wasm-bindgen",
 ]
 
@@ -328,6 +330,7 @@ dependencies = [
  "shared_types",
  "source-map",
  "temporary-annex",
+ "unified_identifier",
 ]
 
 [[package]]
@@ -1134,6 +1137,17 @@ name = "unicode-width"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7dd6e30e90baa6f72411720665d41d89b9a3d039dc45b8faea1ddd07f617f6af"
+
+[[package]]
+name = "unified_identifier"
+version = "0.1.0"
+dependencies = [
+ "binary-serialize-derive",
+ "self-rust-tokenize",
+ "serde",
+ "shared_types",
+ "source-map",
+]
 
 [[package]]
 name = "vcpkg"

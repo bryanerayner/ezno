@@ -38,6 +38,8 @@ binary-serialize-derive = { path = "../checker/binary-serialize-derive", version
 
 shared_types = { path = "../shared_types" }
 
+unified_identifier = { path = "../unified_identifier" }
+
 
 derive-finite-automaton = "0.2"
 derive-debug-extras = { version = "0.3", features = [

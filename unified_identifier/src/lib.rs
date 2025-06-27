@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use binary_serialize_derive;
 use shared_types::serialization::BinarySerializable;
 
 #[derive(Debug, Clone, Eq)]

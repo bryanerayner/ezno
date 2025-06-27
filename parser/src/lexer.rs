@@ -1,3 +1,5 @@
+use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
+
 use crate::{
 	errors::{ParseError, ParseErrors},
 	marker::Marker,
@@ -571,9 +573,9 @@ impl<'a> Lexer<'a> {
                 &mut self,
                 location: &'static str,
                 check_reserved: bool,
-        ) -> Result<crate::types::unified_identifier::UnifiedIdentifier, ParseError> {
+        ) -> Result<UnifiedIdentifier, ParseError> {
                 let ident = self.parse_identifier(location, check_reserved)?;
-                Ok(crate::types::unified_identifier::UnifiedIdentifier::new(ident))
+                Ok(UnifiedIdentifier::new(ident))
         }
 
 	// Will append the length on `until`

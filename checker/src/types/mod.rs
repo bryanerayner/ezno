@@ -41,6 +41,7 @@ use crate::{
 
 use derive_debug_extras::DebugExtras;
 use source_map::SpanWithSource;
+use unified_identifier::StringUnifiedIdentifier;
 
 pub type ExplicitTypeArgument = (TypeId, SpanWithSource);
 
