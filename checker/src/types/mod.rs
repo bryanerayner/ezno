@@ -190,19 +190,19 @@ pub enum Type {
 	/// - Can be used for subtypes (aka N aliases number then more types on top)
 	/// - **Does not imply .prototype = **
 	AliasTo {
-		name: String,
+		name: StringUnifiedIdentifier,
 		parameters: Option<Vec<TypeId>>,
 		to: TypeId,
 	},
 	/// Properties are in environment (for declaration merging)
 	Interface {
-		name: String,
+		name: StringUnifiedIdentifier,
 		parameters: Option<Vec<TypeId>>,
 		extends: Option<TypeId>,
 	},
 	/// Pretty much same as [`Type::Interface`]
 	Class {
-		name: String,
+		name: StringUnifiedIdentifier,
 		type_parameters: Option<Vec<TypeId>>,
 	},
 	/// From a type annotation or .d.ts WITHOUT body. e.g. don't know effects TODO...
@@ -228,13 +228,13 @@ pub enum PolyNature {
 	/// - more accurate return types
 	Parameter { fixed_to: TypeId, variable_id: crate::VariableId },
 	/// This is on a structure (`class`, `interface` and `type` alias)
-	StructureGeneric { name: String, extends: TypeId },
+	StructureGeneric { name: StringUnifiedIdentifier, extends: TypeId },
 	/// From `infer U`.
-	InferGeneric { name: String, extends: TypeId },
+	InferGeneric { name: StringUnifiedIdentifier, extends: TypeId },
 	/// For explicit generics (or on external definitions). Note can be a standalone parameter in some cases
-	FunctionGeneric { name: String, extends: TypeId },
+	FunctionGeneric { name: StringUnifiedIdentifier, extends: TypeId },
 	/// For mapped types
-	MappedGeneric { name: String, extends: TypeId },
+	MappedGeneric { name: StringUnifiedIdentifier, extends: TypeId },
 	/// An error occurred and it looks like
 	Error(TypeId),
 	/// This is generic types. Examples such as a fetch

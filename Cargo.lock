@@ -50,6 +50,7 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 name = "binary-serialize-derive"
 version = "0.0.3"
 dependencies = [
+ "shared_types",
  "syn-helpers",
 ]
 
@@ -310,6 +311,7 @@ dependencies = [
 name = "ezno-parser"
 version = "0.1.7"
 dependencies = [
+ "binary-serialize-derive",
  "derive-debug-extras",
  "derive-enum-from-into",
  "derive-finite-automaton",
@@ -323,6 +325,7 @@ dependencies = [
  "pretty_assertions",
  "self-rust-tokenize",
  "serde",
+ "shared_types",
  "source-map",
  "temporary-annex",
 ]
@@ -977,6 +980,13 @@ dependencies = [
  "memchr",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "shared_types"
+version = "0.1.0"
+dependencies = [
+ "source-map",
 ]
 
 [[package]]

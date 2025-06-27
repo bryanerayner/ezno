@@ -190,7 +190,7 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 						parser::declarations::import::ImportedItems::All { under } => match under {
 							VariableIdentifier::Standard(under, position) => {
 								crate::features::modules::ImportKind::All {
-									under,
+									under: under.original_str(),
 									position: *position,
 								}
 							}
@@ -229,7 +229,7 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 				}) => {
 					let kind = match r#as {
 						Some(VariableIdentifier::Standard(name, position)) => {
-							ImportKind::All { under: name, position: *position }
+							ImportKind::All { under: name.original_str(), position: *position }
 						}
 						Some(VariableIdentifier::Marker(_, _)) => {
 							// TODO

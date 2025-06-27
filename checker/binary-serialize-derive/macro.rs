@@ -6,13 +6,15 @@ use syn_helpers::{
 	Constructable, FieldMut, NamedOrUnnamedFieldMut, Structure, Trait, TraitItem, TypeOfSelf,
 };
 
+use shared_types::serialization::BinarySerializable;
+
 #[proc_macro_derive(BinarySerializable)]
 pub fn derive_binary_serializable(input: TokenStream) -> TokenStream {
 	let input = parse_macro_input!(input as DeriveInput);
 	let result = derive_trait(
 		input,
 		Trait {
-			name: parse_quote!(crate::BinarySerializable),
+			name: parse_quote!(shared_types::serialization::BinarySerializable),
 			generic_parameters: None,
 			items: vec![
 				TraitItem::new_method(
@@ -33,7 +35,7 @@ pub fn derive_binary_serializable(input: TokenStream) -> TokenStream {
 								.chain(constructable.get_fields_mut().fields_iterator_mut().map(
 									|mut field: NamedOrUnnamedFieldMut| -> Stmt {
 										let reference = field.get_reference();
-										parse_quote!(crate::BinarySerializable::serialize(#reference, buf);)
+										parse_quote!(shared_types::serialization::BinarySerializable::serialize(#reference, buf);)
 									},
 								));
 							Ok(iterator.collect())
@@ -50,7 +52,7 @@ pub fn derive_binary_serializable(input: TokenStream) -> TokenStream {
 					Some(parse_quote!(Self)),
 					|structure| {
 						let deserialize_call: Expr = parse_quote!(
-							crate::BinarySerializable::deserialize(iter, backing_source)
+							shared_types::serialization::BinarySerializable::deserialize(iter, backing_source)
 						);
 
 						match structure {

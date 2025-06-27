@@ -1,0 +1,14 @@
+[package]
+name = "shared_types"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+source-map = { version = "0.15", features = [
+  "serde-serialize",
+  "self-rust-tokenize",
+] }
+
+
+[lints]
+workspace = true

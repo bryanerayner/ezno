@@ -1,6 +1,5 @@
 use parser::{
-	ast::{export::Exportable, ExportDeclaration},
-	ASTNode, Declaration, Decorated, Expression, StatementOrDeclaration,
+	ast::{export::Exportable, ExportDeclaration}, types::unified_identifier::UnifiedIdentifier, ASTNode, Declaration, Decorated, Expression, StatementOrDeclaration
 };
 use source_map::SourceId;
 
@@ -60,7 +59,7 @@ pub(super) fn type_definition_file<T: crate::ReadFromFS>(
 
 pub(crate) fn get_internal_function_effect_from_decorators(
 	decorators: &[parser::Decorator],
-	function_name: &str,
+	function_name: &UnifiedIdentifier,
 	environment: &Environment,
 ) -> Option<InternalFunctionEffect> {
 	decorators.iter().find_map(|decorator| {

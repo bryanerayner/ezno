@@ -1,3 +1,6 @@
+use std::borrow::Cow;
+use shared_types::serialization::BinarySerializable;
+
 #[derive(Debug, Clone, Eq)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct UnifiedIdentifier<'a> {
@@ -5,7 +8,7 @@ pub struct UnifiedIdentifier<'a> {
     normalized: Vec<NormalizedData<'a>>, // Lower‑case words after unification
 }
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone, Eq, binary_serialize_derive::BinarySerializable)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct StringUnifiedIdentifier {
     original: String,        // Original spelling (kept for debugging/round‑tripping)
@@ -15,6 +18,30 @@ pub struct StringUnifiedIdentifier {
 impl StringUnifiedIdentifier {
     pub fn original_str(&self) -> &str {
         &self.original
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.original
+    }
+
+    pub fn original_string(&self) -> String {
+        self.original.clone()
+    }
+
+    pub fn original_borrowed_cow(&self) -> Cow<str> {
+        Cow::Borrowed(self.original.as_str())
+    }
+}
+
+impl PartialEq<&str> for StringUnifiedIdentifier {
+    fn eq(&self, other: &&str) -> bool {
+        self.original == *other
+    }
+}
+
+impl PartialEq<StringUnifiedIdentifier> for &str {
+    fn eq(&self, other: &StringUnifiedIdentifier) -> bool {
+        *self == other.original
     }
 }
 

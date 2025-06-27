@@ -13,6 +13,8 @@ authors = ["Ben <kaleidawave@gmail.com>"]
 [dependencies]
 syn-helpers = "0.5"
 
+shared_types = {path = "../../shared_types"}
+
 [lib]
 path = "macro.rs"
 proc-macro = true

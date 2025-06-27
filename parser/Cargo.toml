@@ -34,6 +34,11 @@ full-typescript = []
 [dependencies]
 visitable-derive = { path = "./visitable-derive", version = "0.0.9", package = "ezno-parser-visitable-derive" }
 
+binary-serialize-derive = { path = "../checker/binary-serialize-derive", version = "0.0.3" }
+
+shared_types = { path = "../shared_types" }
+
+
 derive-finite-automaton = "0.2"
 derive-debug-extras = { version = "0.3", features = [
   "auto-debug-single-tuple-inline",

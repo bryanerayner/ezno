@@ -34,7 +34,7 @@ pub(crate) fn register_variable_identifier<T: crate::ReadFromFS, V: ContextType>
 	match name {
 		parser::VariableIdentifier::Standard(name, pos) => {
 			environment.register_variable_handle_error(
-				name,
+				name.original_str(),
 				argument,
 				pos.with_source(environment.get_source()),
 				&mut checking_data.diagnostics_container,
@@ -108,7 +108,7 @@ pub(crate) fn register_variable<T: crate::ReadFromFS>(
 				match field.get_ast_ref() {
 					ObjectDestructuringField::Name(variable, _type, ..) => {
 						let name = match variable {
-							VariableIdentifier::Standard(ref name, _) => name,
+							VariableIdentifier::Standard(ref name, _) => name.original_str(),
 							VariableIdentifier::Marker(_, _) => "?",
 						};
 						if let Some(ref mut taken_members) = taken_members {
@@ -340,7 +340,7 @@ fn assign_initial_to_fields<T: crate::ReadFromFS>(
 					environment.context_type.scope
 				{
 					let name = match name {
-						VariableIdentifier::Standard(ref name, _) => name.to_owned(),
+						VariableIdentifier::Standard(ref name, _) => name.original_string(),
 						VariableIdentifier::Marker(_, _) => "?".to_owned(),
 					};
 					exported.named.insert(name, (id, mutability));
@@ -372,7 +372,7 @@ fn assign_initial_to_fields<T: crate::ReadFromFS>(
 
 						let key_ty = match name {
 							VariableIdentifier::Standard(name, _) => {
-								PropertyKey::String(Cow::Borrowed(name))
+								PropertyKey::String(name.original_borrowed_cow())
 							}
 							VariableIdentifier::Marker(..) => PropertyKey::new_empty_property_key(),
 						};

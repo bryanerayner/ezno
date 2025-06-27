@@ -1,6 +1,7 @@
 /// Contains definitions of structures around functions
 use std::collections::HashMap;
 
+use parser::types::unified_identifier::StringUnifiedIdentifier;
 use source_map::{BaseSpan, Nullable, SpanWithSource};
 
 use super::calling::{Callable, CallingContext, CallingInput};
@@ -47,12 +48,12 @@ pub enum FunctionEffect {
 		/// used to pick which function to calling in `constant_functions`
 		///
 		/// in the future this may need to have a prefix
-		identifier: String,
+		identifier: StringUnifiedIdentifier,
 		may_throw: Option<TypeId>,
 	},
 	InputOutput {
 		/// not used in the checker, but may be useful to other tools
-		identifier: String,
+		identifier: StringUnifiedIdentifier,
 		may_throw: Option<TypeId>,
 	},
 	/// Such as a callback
@@ -61,8 +62,8 @@ pub enum FunctionEffect {
 
 #[derive(Debug)]
 pub enum InternalFunctionEffect {
-	Constant { identifier: String, may_throw: Option<TypeId> },
-	InputOutput { identifier: String, may_throw: Option<TypeId> },
+	Constant { identifier: StringUnifiedIdentifier, may_throw: Option<TypeId> },
+	InputOutput { identifier: StringUnifiedIdentifier, may_throw: Option<TypeId> },
 }
 
 impl From<InternalFunctionEffect> for FunctionEffect {
@@ -230,7 +231,7 @@ impl FunctionBehavior {
 /// Optionality is indicated by what vector it is in [`SynthesisedParameters`]
 #[derive(Clone, Debug, binary_serialize_derive::BinarySerializable)]
 pub struct SynthesisedParameter {
-	pub name: String,
+	pub name: StringUnifiedIdentifier,
 	/// This is also for parameters with default (which is handled behind the scenes)
 	pub is_optional: bool,
 	/// This is the generic parameter type, not the restriction
@@ -241,7 +242,7 @@ pub struct SynthesisedParameter {
 /// **Note that the [Type] here is not array like**
 #[derive(Clone, Debug, binary_serialize_derive::BinarySerializable)]
 pub struct SynthesisedRestParameter {
-	pub name: String,
+	pub name: StringUnifiedIdentifier,
 	/// This is the item type, aka the `T` of `Array<T>`
 	pub item_type: TypeId,
 	/// This is the generic type (to substitute into)
