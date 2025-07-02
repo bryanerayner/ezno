@@ -1,6 +1,7 @@
 use std::{borrow::Cow, collections::hash_map::Entry};
 
 use source_map::{Nullable, SourceId, SpanWithSource};
+use unified_identifier::StringUnifiedIdentifier;
 
 use crate::{
 	context::{
@@ -57,7 +58,7 @@ pub fn register_expression_function<T: crate::ReadFromFS, A: crate::ASTImplement
 	is_async: bool,
 	is_generator: bool,
 	location: ContextLocation,
-	name: Option<String>,
+	name: Option<StringUnifiedIdentifier>,
 	function: &impl SynthesisableFunction<A>,
 	environment: &mut Environment,
 	checking_data: &mut CheckingData<T, A>,
@@ -89,7 +90,7 @@ pub fn synthesise_hoisted_statement_function<T: crate::ReadFromFS, A: crate::AST
 	is_async: bool,
 	is_generator: bool,
 	location: ContextLocation,
-	name: String,
+	name: StringUnifiedIdentifier,
 	function: &impl SynthesisableFunction<A>,
 	environment: &mut Environment,
 	checking_data: &mut CheckingData<T, A>,
@@ -131,7 +132,7 @@ pub fn synthesise_declare_statement_function<T: crate::ReadFromFS, A: crate::AST
 	is_async: bool,
 	is_generator: bool,
 	location: ContextLocation,
-	name: String,
+	name: StringUnifiedIdentifier,
 	internal_marker: Option<InternalFunctionEffect>,
 	function: &impl SynthesisableFunction<A>,
 	environment: &mut Environment,

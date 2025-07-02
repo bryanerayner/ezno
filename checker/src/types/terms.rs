@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use unified_identifier::StringUnifiedIdentifier;
+
 use super::TypeId;
 
 /// Terms. `null` is a special object
@@ -8,9 +10,9 @@ use super::TypeId;
 #[derive(Debug, Clone, binary_serialize_derive::BinarySerializable)]
 pub enum Constant {
 	Number(f64),
-	String(String),
+	String(StringUnifiedIdentifier),
 	Boolean(bool),
-	Symbol { key: String },
+	Symbol { key: StringUnifiedIdentifier },
 	Undefined,
 }
 
@@ -35,7 +37,7 @@ impl Constant {
 	pub fn as_js_string(&self) -> Cow<str> {
 		match self {
 			Constant::Number(value) => Cow::Owned(value.to_string()),
-			Constant::String(value) => Cow::Borrowed(value),
+			Constant::String(value) => Cow::Borrowed(value.original_str()),
 			Constant::Boolean(value) => Cow::Borrowed(if *value { "true" } else { "false" }),
 			Constant::Symbol { key } => Cow::Owned(format!("Symbol({key})")),
 			Constant::Undefined => Cow::Borrowed("undefined"),

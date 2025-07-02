@@ -753,22 +753,22 @@ impl<T: ContextType> Context<T> {
 	/// ```
 	pub fn new_explicit_type_parameter(
 		&mut self,
-		name: &str,
+		name: &UnifiedIdentifier,
 		constraint_type: Option<TypeId>,
 		default_type: Option<TypeId>,
 		types: &mut TypeStore,
 	) -> crate::types::generics::GenericTypeParameter {
 		let ty = Type::RootPolyType(PolyNature::FunctionGeneric {
-			name: StringUnifiedIdentifier::from(name),
+			name: name.as_string(),
 			// TODO this is fixed!!
 			extends: constraint_type.unwrap_or(TypeId::ANY_TYPE),
 		});
 
 		let ty = types.register_type(ty);
-		self.named_types.insert(name.to_owned(), ty);
+		self.named_types.insert(name.pascal_case().clone(), ty);
 
 		crate::types::generics::GenericTypeParameter {
-			name: name.to_owned(),
+			name: name.as_string(),
 			type_id: ty,
 			default: default_type,
 		}

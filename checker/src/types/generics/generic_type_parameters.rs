@@ -1,5 +1,7 @@
 use std::{fmt::Debug, iter::FromIterator};
 
+use unified_identifier::StringUnifiedIdentifier;
+
 use crate::TypeId;
 
 // Encompasses both generic types
@@ -24,7 +26,7 @@ impl From<Vec<GenericTypeParameter>> for GenericTypeParameters {
 #[derive(Clone, Debug, binary_serialize_derive::BinarySerializable)]
 pub struct GenericTypeParameter {
 	/// name is only for error displaying
-	pub name: String,
+	pub name: StringUnifiedIdentifier,
 	// Using its associated [`Type`], its restriction can be found
 	pub type_id: TypeId,
 	pub default: Option<TypeId>,

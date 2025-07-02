@@ -1,7 +1,7 @@
 use parser::{
 	ast::{export::Exportable, ExportDeclaration}, ASTNode, Declaration, Decorated, Expression, StatementOrDeclaration
 };
-use unified_identifier::UnifiedIdentifier;
+use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
 use source_map::SourceId;
 
 use super::classes::synthesise_class_declaration;
@@ -89,7 +89,7 @@ pub(crate) fn get_internal_function_effect_from_decorators(
 						};
 						(identifier, may_throw)
 					} else {
-						(function_name.to_owned(), None)
+						(function_name.original().to_owned(), None)
 					};
 				Some(match decorator_name {
 					"Constant" => InternalFunctionEffect::Constant { identifier, may_throw },

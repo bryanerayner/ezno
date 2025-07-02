@@ -331,7 +331,7 @@ pub(super) fn synthesise_signatures<T: crate::ReadFromFS, B: SynthesiseInterface
 								extends: matching_type,
 							},
 						));
-						sub_environment.named_types.insert(parameter.clone(), parameter_type);
+						sub_environment.named_types.insert(parameter.pascal_case(), parameter_type);
 
 						let key = if let Some(as_type) = as_type {
 							synthesise_type_annotation(as_type, &mut sub_environment, checking_data)
