@@ -556,11 +556,9 @@ pub(crate) mod test_utils {
 		($source:literal, $ast_pattern:pat) => {{
 			let node = crate::ASTNode::from_string($source.to_owned(), Default::default()).unwrap();
 			// AST matchers are partial expressions
-			let matches = ::match_deref::match_deref! {
-				match &node {
-					$ast_pattern => true,
-					_ => false,
-				}
+			let matches = match &node {
+				$ast_pattern => true,
+				_ => false,
 			};
 
 			if !matches {

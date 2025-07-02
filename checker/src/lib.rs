@@ -27,6 +27,7 @@ use context::{
 };
 
 use diagnostics::{TypeCheckError, TypeCheckWarning};
+use unified_identifier::UnifiedIdentifier;
 pub(crate) use utilities::{map::Map, range_map::RangeMap};
 pub(crate) use binary_serialize_derive::BinarySerializable;
 pub use shared_types::serialization::BinarySerializable;
@@ -166,7 +167,7 @@ pub trait ASTImplementation: Sized {
 
 	fn multiple_expression_position<'a>(expression: &'a Self::MultipleExpression<'a>) -> Span;
 
-	fn type_parameter_name<'a>(parameter: &'a Self::TypeParameter<'a>) -> &'a str;
+	fn type_parameter_name<'a>(parameter: &'a Self::TypeParameter<'a>) -> &UnifiedIdentifier<'a>;
 
 	fn type_annotation_position<'a>(annotation: &'a Self::TypeAnnotation<'a>) -> Span;
 

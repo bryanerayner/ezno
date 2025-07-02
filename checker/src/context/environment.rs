@@ -1,4 +1,5 @@
 use source_map::{SourceId, Span, SpanWithSource};
+use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
 use std::collections::{HashMap, HashSet};
 
 use crate::{
@@ -621,7 +622,7 @@ impl Environment<'_> {
 	) -> TypeId {
 		match reference {
 			Reference::Variable(name, position) => self
-				.get_variable_handle_error(&name, position, checking_data)
+				.get_variable_handle_error(&name.as_unified(), position, checking_data)
 				.map_or(TypeId::ERROR_TYPE, |VariableWithValue(_, ty)| ty),
 			Reference::Property { on, with, publicity, position } => {
 				let get_property_handle_errors = self.get_property_handle_errors(
@@ -649,7 +650,7 @@ impl Environment<'_> {
 	) {
 		match reference {
 			Reference::Variable(name, position) => {
-				self.assign_to_variable_handle_errors(name.as_str(), position, rhs, checking_data);
+				self.assign_to_variable_handle_errors(&name.as_unified(), position, rhs, checking_data);
 			}
 			Reference::Property { on, with, publicity, position } => {
 				self.set_property_handle_errors(on, publicity, &with, rhs, position, checking_data);
@@ -659,7 +660,7 @@ impl Environment<'_> {
 
 	pub fn assign_to_variable_handle_errors<T: crate::ReadFromFS, A: crate::ASTImplementation>(
 		&mut self,
-		variable_name: &str,
+		variable_name: &UnifiedIdentifier,
 		assignment_position: SpanWithSource,
 		new_type: TypeId,
 		checking_data: &mut CheckingData<T, A>,
@@ -683,7 +684,7 @@ impl Environment<'_> {
 	/// This is top level variables, not properties.
 	pub fn assign_to_variable(
 		&mut self,
-		variable_name: &str,
+		variable_name: &UnifiedIdentifier,
 		assignment_position: SpanWithSource,
 		new_type: TypeId,
 		types: &mut TypeStore,
@@ -712,7 +713,7 @@ impl Environment<'_> {
 						{
 							return Err(AssignmentError::VariableUsedInTDZ(VariableUsedInTDZ {
 								position: assignment_position,
-								variable_name: variable_name.to_owned(),
+								variable_name: variable_name.as_string(),
 							}));
 						}
 
@@ -759,7 +760,7 @@ impl Environment<'_> {
 		} else {
 			crate::utilities::notify!("Could say it is on the window here");
 			Err(AssignmentError::VariableNotFound {
-				variable: variable_name.to_owned(),
+				variable: variable_name.as_string(),
 				assignment_position,
 			})
 		}
@@ -877,7 +878,7 @@ impl Environment<'_> {
 
 	pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementation>(
 		&mut self,
-		name: &str,
+		name: &UnifiedIdentifier,
 		position: SpanWithSource,
 		checking_data: &mut CheckingData<U, A>,
 	) -> Result<VariableWithValue, TypeId> {
@@ -889,12 +890,12 @@ impl Environment<'_> {
 			} else {
 				let possibles = {
 					let mut possibles =
-						crate::get_closest(self.get_all_variable_names(), name).unwrap_or(vec![]);
+						crate::get_closest(self.get_all_variable_names(), name.as_str()).unwrap_or(vec![]);
 					possibles.sort_unstable();
 					possibles
 				};
 				checking_data.diagnostics_container.add_error(
-					TypeCheckError::CouldNotFindVariable { variable: name, possibles, position },
+					TypeCheckError::CouldNotFindVariable { variable: name.as_str(), possibles, position },
 				);
 				return Err(TypeId::ERROR_TYPE);
 			}
@@ -1091,7 +1092,7 @@ impl Environment<'_> {
 			} else {
 				checking_data.diagnostics_container.add_error(TypeCheckError::VariableUsedInTDZ(
 					VariableUsedInTDZ {
-						variable_name: self.get_variable_name(og_var.get_id()).to_owned(),
+						variable_name: StringUnifiedIdentifier::from(self.get_variable_name(og_var.get_id())),
 						position,
 					},
 				));
@@ -1376,7 +1377,7 @@ impl Environment<'_> {
 				.iter()
 				.map(|parameter| {
 					let ty = Type::RootPolyType(PolyNature::StructureGeneric {
-						name: A::type_parameter_name(parameter).to_owned(),
+						name: A::type_parameter_name(parameter).as_string(),
 						// This is assigned later
 						extends: TypeId::ANY_TO_INFER_TYPE,
 					});
@@ -1386,7 +1387,7 @@ impl Environment<'_> {
 		});
 
 		let ty = Type::Interface {
-			name: name.to_owned(),
+			name: StringUnifiedIdentifier::from(name),
 			parameters,
 			extends: extends.map(|_| TypeId::ANY_TO_INFER_TYPE),
 		};
@@ -1442,7 +1443,7 @@ impl Environment<'_> {
 				.iter()
 				.map(|parameter| {
 					let ty = Type::RootPolyType(PolyNature::StructureGeneric {
-						name: A::type_parameter_name(parameter).to_owned(),
+						name: A::type_parameter_name(parameter).as_string(),
 						//A::parameter_constrained(parameter),
 						// TODO
 						extends: TypeId::ANY_TO_INFER_TYPE,
@@ -1452,7 +1453,7 @@ impl Environment<'_> {
 				.collect()
 		});
 
-		let ty = Type::Class { name: name.to_owned(), type_parameters };
+		let ty = Type::Class { name: StringUnifiedIdentifier::from(name), type_parameters };
 		let class_type = types.register_type(ty);
 		self.named_types.insert(name.to_owned(), class_type);
 		// TODO duplicates
@@ -1472,7 +1473,7 @@ impl Environment<'_> {
 				.iter()
 				.map(|parameter| {
 					let ty = Type::RootPolyType(PolyNature::StructureGeneric {
-						name: A::type_parameter_name(parameter).to_owned(),
+						name: A::type_parameter_name(parameter).as_string(),
 						// Set later for recursion
 						extends: TypeId::ANY_TO_INFER_TYPE,
 					});
@@ -1481,7 +1482,7 @@ impl Environment<'_> {
 				.collect()
 		});
 
-		let ty = Type::AliasTo { to: TypeId::ANY_TO_INFER_TYPE, name: name.to_owned(), parameters };
+		let ty = Type::AliasTo { to: TypeId::ANY_TO_INFER_TYPE, name: StringUnifiedIdentifier::from(name), parameters };
 		let alias_ty = types.register_type(ty);
 		let existing_type = self.named_types.insert(name.to_owned(), alias_ty);
 
@@ -1516,7 +1517,7 @@ impl Environment<'_> {
 				else {
 					unreachable!()
 				};
-				sub_environment.named_types.insert(name.clone(), parameter);
+				sub_environment.named_types.insert(name.pascal_case(), parameter);
 			}
 			for (parameter, ast_parameter) in parameters.into_iter().zip(ast_parameters.unwrap()) {
 				let new_to = A::synthesise_type_parameter_extends(
@@ -1585,7 +1586,7 @@ impl Environment<'_> {
 		if let Scope::TypeAnnotationCondition { ref mut infer_parameters } = self.context_type.scope
 		{
 			let infer_type = types.register_type(Type::RootPolyType(PolyNature::InferGeneric {
-				name: infer_name.to_owned(),
+				name: StringUnifiedIdentifier::from(infer_name),
 				extends: expected,
 			}));
 

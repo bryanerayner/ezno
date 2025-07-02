@@ -993,7 +993,7 @@ pub enum AssignmentError {
 	/// Non writable, could have position info
 	Constant(SpanWithSource),
 	VariableNotFound {
-		variable: String,
+		variable: StringUnifiedIdentifier,
 		assignment_position: SpanWithSource,
 	},
 	/// Covers both assignment and declaration

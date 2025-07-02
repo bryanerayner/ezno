@@ -11,6 +11,7 @@ use crate::{
 	},
 };
 use source_map::{SourceId, SpanWithSource};
+use unified_identifier::StringUnifiedIdentifier;
 use std::{
 	fmt::{self, Debug, Display},
 	iter,
@@ -52,7 +53,7 @@ pub enum Diagnostic {
 /// Temporary dead zone. Between the variable identifier being hoisted and the value being assigned
 #[allow(clippy::upper_case_acronyms)]
 pub struct VariableUsedInTDZ {
-	pub variable_name: String,
+	pub variable_name: StringUnifiedIdentifier,
 	pub position: SpanWithSource,
 }
 

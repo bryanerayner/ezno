@@ -13,6 +13,14 @@ pub struct UnifiedIdentifier<'a> {
     pascal_case: OnceCell<String>,
 }
 
+
+impl<'a> std::fmt::Display for UnifiedIdentifier<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.original)
+    }
+}
+
+
 fn get_pascal_case(normalized: &Vec<NormalizedData<'_>>) -> String {
     let mut s = String::new();
     for part in normalized {
@@ -62,6 +70,12 @@ impl<'a> UnifiedIdentifier<'a> {
 pub struct StringUnifiedIdentifier {
     original: String,        // Original spelling (kept for debugging/round‑tripping)
     normalized: Vec<String>, // Lower‑case words after unification
+}
+
+impl std::fmt::Display for StringUnifiedIdentifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.original)
+    }
 }
 
 impl StringUnifiedIdentifier {
@@ -122,6 +136,24 @@ impl<'a> UnifiedIdentifier<'a> {
     /// Returns the identifier exactly as it appeared in the source code as a `&str`.
     pub fn as_str(&self) -> &str {
         &self.original
+    }
+
+    /// Returns the identifier exactly as it appeared in the source code as a `&str`.
+    pub fn as_string(&self) -> StringUnifiedIdentifier {
+        StringUnifiedIdentifier {
+            original: self.original.to_string(),
+            normalized: self.normalized.iter().map(|nd| {
+                match nd {
+                    NormalizedData::Str(s) | NormalizedData::StrWithoutHyphens(s) => {
+                        let mut s = s.to_ascii_lowercase();
+                        if let NormalizedData::StrWithoutHyphens(_) = nd {
+                            s = s.replace('-', "");
+                        }
+                        s
+                    }
+                }
+            }).collect(),
+        }
     }
 }
 
