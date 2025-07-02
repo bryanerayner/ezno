@@ -863,7 +863,7 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 						is_async,
 						is_generator,
 						location,
-						name.clone(),
+						name.pascal_case().clone(),
 						function,
 						environment,
 						checking_data,
@@ -882,7 +882,7 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 					{
 						exported
 							.named
-							.insert(name.clone(), (variable_id, VariableMutability::Constant));
+							.insert(name.pascal_case().clone(), (variable_id, VariableMutability::Constant));
 					}
 				}
 			}
@@ -904,9 +904,9 @@ pub(super) fn part_to_name_pair<T: ImportOrExport>(
 			None => name,
 		};
 		if T::PREFIX {
-			Some(NamePair { value, r#as: name, position })
+			Some(NamePair { value: value.as_unified(), r#as: name.as_unified(), position })
 		} else {
-			Some(NamePair { value: name, r#as: value, position })
+			Some(NamePair { value: name.as_unified(), r#as: value.as_unified(), position })
 		}
 	} else {
 		None

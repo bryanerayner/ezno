@@ -12,7 +12,7 @@ pub(crate) use invocation::CallCheckingBehavior;
 pub use root::RootContext;
 
 use source_map::SpanWithSource;
-use unified_identifier::UnifiedIdentifier;
+use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
 
 use crate::{
 	context::environment::ExpectedReturnType,
@@ -759,7 +759,7 @@ impl<T: ContextType> Context<T> {
 		types: &mut TypeStore,
 	) -> crate::types::generics::GenericTypeParameter {
 		let ty = Type::RootPolyType(PolyNature::FunctionGeneric {
-			name: name.to_owned(),
+			name: StringUnifiedIdentifier::from(name),
 			// TODO this is fixed!!
 			extends: constraint_type.unwrap_or(TypeId::ANY_TYPE),
 		});

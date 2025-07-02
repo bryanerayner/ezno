@@ -1,37 +1,58 @@
 use std::borrow::Cow;
 use binary_serialize_derive;
+use once_cell::unsync::OnceCell;
 
 #[derive(Debug, Clone, Eq)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct UnifiedIdentifier<'a> {
-    original: &'a str,        // Original spelling (kept for debugging/round‑tripping)
-    normalized: Vec<NormalizedData<'a>>, // Lower‑case words after unification
-    pascal_case: once_cell::unsync::OnceCell<String>,
+    original:   &'a str,                 // Original spelling (kept for round-tripping)
+    normalized: Vec<NormalizedData<'a>>, // Lower-case words after unification
+
+    // This cache is purely runtime data – skip it when (de)serialising.
+    #[cfg_attr(feature = "serde-serialize", serde(skip))]   // <- fix
+    pascal_case: OnceCell<String>,
+}
+
+fn get_pascal_case(normalized: &Vec<NormalizedData<'_>>) -> String {
+    let mut s = String::new();
+    for part in normalized {
+        let word = match part {
+            NormalizedData::Str(w) | NormalizedData::StrWithoutHyphens(w) => {
+                let w = if let NormalizedData::StrWithoutHyphens(_) = part {
+                    w.replace('-', "")
+                } else {
+                    w.to_string()
+                };
+                w
+            }
+        };
+        let mut chars = word.chars();
+        if let Some(first) = chars.next() {
+            s.push(first.to_ascii_uppercase());
+            s.extend(chars.flat_map(|c| c.to_lowercase()));
+        }
+    }
+    s
+}
+
+fn get_pascal_case_strings(normalized: &Vec<String>) -> String {
+    let mut s = String::new();
+    for part in normalized {
+        let word = part;
+        let mut chars = word.chars();
+        if let Some(first) = chars.next() {
+            s.push(first.to_ascii_uppercase());
+            s.extend(chars.flat_map(|c| c.to_lowercase()));
+        }
+    }
+    s
 }
 
 impl<'a> UnifiedIdentifier<'a> {
     /// Returns the PascalCase version of the normalized identifier.
-    pub fn pascal_case(&self) -> &str {
+    pub fn pascal_case(&self) -> &String {
         self.pascal_case.get_or_init(|| {
-            let mut s = String::new();
-            for part in &self.normalized {
-                let word = match part {
-                    NormalizedData::Str(w) | NormalizedData::StrWithoutHyphens(w) => {
-                        let w = if let NormalizedData::StrWithoutHyphens(_) = part {
-                            w.replace('-', "")
-                        } else {
-                            w.to_string()
-                        };
-                        w
-                    }
-                };
-                let mut chars = word.chars();
-                if let Some(first) = chars.next() {
-                    s.push(first.to_ascii_uppercase());
-                    s.extend(chars.flat_map(|c| c.to_lowercase()));
-                }
-            }
-            s
+            get_pascal_case(&self.normalized)
         })
     }
 }
@@ -58,6 +79,11 @@ impl StringUnifiedIdentifier {
 
     pub fn original_borrowed_cow(&self) -> Cow<str> {
         Cow::Borrowed(self.original.as_str())
+    }
+
+    /// Returns the PascalCase version of the normalized identifier.
+    pub fn pascal_case(&self) -> String {
+        get_pascal_case_strings(&self.normalized)
     }
 }
 
@@ -458,6 +484,7 @@ impl<'a> From<&'a StringUnifiedIdentifier> for UnifiedIdentifier<'a> {
         Self {
             original: &src.original,
             normalized,
+            pascal_case: OnceCell::new(),
         }
     }
 }

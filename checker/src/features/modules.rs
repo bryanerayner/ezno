@@ -204,12 +204,12 @@ pub fn import_items<
 				if let Ok(Ok(ref exports)) = exports {
 					crate::utilities::notify!("{:?}", part);
 					let (exported_variable, exported_type) =
-						exports.get_export(part.value, type_only);
+						exports.get_export(part.value.pascal_case(), type_only);
 
 					if exported_variable.is_none() && exported_type.is_none() {
 						let possibles = {
 							let mut possibles =
-								crate::get_closest(exports.keys(), part.value).unwrap_or(vec![]);
+								crate::get_closest(exports.keys(), part.value.pascal_case()).unwrap_or(vec![]);
 							possibles.sort_unstable();
 							possibles
 						};
@@ -218,14 +218,14 @@ pub fn import_items<
 							crate::diagnostics::TypeCheckError::FieldNotExported {
 								file: partial_import_path,
 								position,
-								importing: part.value,
+								importing: part.value.pascal_case(),
 								possibles,
 							},
 						);
 
 						// Register error
 						environment.register_variable_handle_error(
-							part.r#as,
+							part.r#as.pascal_case(),
 							VariableRegisterArguments {
 								constant: true,
 								space: None,
@@ -260,7 +260,7 @@ pub fn import_items<
 								.with_source(environment.get_source()),
 						};
 						crate::utilities::notify!("{:?}", part.r#as.to_owned());
-						let existing = environment.variables.insert(part.r#as.to_owned(), v);
+						let existing = environment.variables.insert(part.r#as.pascal_case().to_owned(), v);
 						if let Some(existing) = existing {
 							checking_data.diagnostics_container.add_error(
 								crate::diagnostics::TypeCheckError::DuplicateImportName {
@@ -287,14 +287,14 @@ pub fn import_items<
 							if let Scope::Module { ref mut exported, .. } =
 								environment.context_type.scope
 							{
-								exported.named.insert(part.r#as.to_owned(), (variable, mutability));
+								exported.named.insert(part.r#as.pascal_case().to_owned(), (variable, mutability));
 							}
 						}
 					}
 
 					// add type to scope
 					if let Some(ty) = exported_type {
-						let existing = environment.named_types.insert(part.r#as.to_owned(), ty);
+						let existing = environment.named_types.insert(part.r#as.pascal_case().to_owned(), ty);
 						assert!(existing.is_none(), "TODO exception");
 					}
 				} else {
@@ -302,7 +302,7 @@ pub fn import_items<
 					// Don't need to emit an error here
 					let declared_at = part.position.with_source(environment.get_source());
 					environment.register_variable_handle_error(
-						part.r#as,
+						part.r#as.pascal_case(),
 						VariableRegisterArguments {
 							constant: true,
 							space: None,
