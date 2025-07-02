@@ -12,12 +12,13 @@ use crate::{
 
 use simple_json_parser::{JSONKey, RootJSONValue};
 use source_map::{FileSystem, Span};
+use unified_identifier::UnifiedIdentifier;
 
 /// For imports and exports
 #[derive(Debug)]
 pub struct NamePair<'a> {
-	pub value: &'a str,
-	pub r#as: &'a str,
+	pub value: UnifiedIdentifier<'a>,
+	pub r#as: UnifiedIdentifier<'a>,
 	pub position: Span,
 }
 

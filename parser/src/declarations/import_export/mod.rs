@@ -162,7 +162,7 @@ impl<U: ImportOrExport> self_rust_tokenize::SelfRustTokenize for ImportExportPar
 #[apply(derive_ASTNode)]
 pub enum ImportExportName {
 	Reference(StringUnifiedIdentifier),
-	Quoted(String, Quoted),
+	Quoted(StringUnifiedIdentifier, Quoted),
 	/// For typing here
 	#[cfg_attr(feature = "self-rust-tokenize", self_tokenize_field(0))]
 	Marker(
@@ -178,7 +178,7 @@ impl ImportExportName {
 		if reader.starts_with_string_delimeter() {
 			let (content, quoted) = reader.parse_string_literal()?;
 			let position = start.with_length(content.len() + 2);
-			Ok((ImportExportName::Quoted(content.to_owned(), quoted), position))
+			Ok((ImportExportName::Quoted(StringUnifiedIdentifier::from(content), quoted), position))
 		} else if reader.is_keyword_advance("default") {
 			// TODO separate identifier
 			Ok((ImportExportName::Reference("default".into()), start.with_length("default".len())))
@@ -208,7 +208,7 @@ impl ImportExportName {
 			ImportExportName::Reference(alias) => buf.push_str(alias.original_str()),
 			ImportExportName::Quoted(alias, q) => {
 				buf.push(q.as_char());
-				buf.push_str(alias);
+				buf.push_str(alias.as_str());
 				buf.push(q.as_char());
 			}
 			ImportExportName::Marker(_) => {}
