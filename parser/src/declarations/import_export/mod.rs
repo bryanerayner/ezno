@@ -6,7 +6,7 @@ use source_map::Span;
 use visitable_derive::Visitable;
 
 use crate::{derive_ASTNode, Marker, ParseError, ParseErrors, Quoted};
-use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
+use unified_identifier::{StringUnifiedIdentifier};
 pub trait ImportOrExport: std::fmt::Debug + Clone + PartialEq + Sync + Send + 'static {
 	const PREFIX: bool;
 }

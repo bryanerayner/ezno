@@ -378,7 +378,7 @@ impl ASTNode for InterfaceMember {
 						};
 
 						return Ok(InterfaceMember::Rule {
-							parameter: name.to_owned(),
+							parameter: StringUnifiedIdentifier::from(name),
 							optionality,
 							is_readonly,
 							matching_type: Box::new(matching_type),

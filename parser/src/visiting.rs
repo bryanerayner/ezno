@@ -19,8 +19,6 @@ mod ast {
 
 	use crate::block::{BlockLike, BlockLikeMut};
 
-	use unified_identifier::UnifiedIdentifier;
-
 	use super::{
 		BlockItem, BlockItemMut, Chain, Expression, ImmutableVariableOrProperty,
 		MutableVariableOrProperty, VisitorMutReceiver, VisitorReceiver,

@@ -1,5 +1,5 @@
 use visitable_derive::Visitable;
-use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
+use unified_identifier::{StringUnifiedIdentifier};
 
 use crate::{
 	derive_ASTNode, functions::{FunctionBased, FunctionParameters, HeadingAndPosition, Parameter}, ASTNode, Block, Expression, FunctionBase, ParseResult, Span, VariableField, VariableIdentifier

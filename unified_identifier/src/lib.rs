@@ -1,12 +1,39 @@
 use std::borrow::Cow;
 use binary_serialize_derive;
-use shared_types::serialization::BinarySerializable;
 
 #[derive(Debug, Clone, Eq)]
 #[cfg_attr(feature = "serde-serialize", derive(serde::Serialize))]
 pub struct UnifiedIdentifier<'a> {
     original: &'a str,        // Original spelling (kept for debugging/round‑tripping)
     normalized: Vec<NormalizedData<'a>>, // Lower‑case words after unification
+    pascal_case: once_cell::unsync::OnceCell<String>,
+}
+
+impl<'a> UnifiedIdentifier<'a> {
+    /// Returns the PascalCase version of the normalized identifier.
+    pub fn pascal_case(&self) -> &str {
+        self.pascal_case.get_or_init(|| {
+            let mut s = String::new();
+            for part in &self.normalized {
+                let word = match part {
+                    NormalizedData::Str(w) | NormalizedData::StrWithoutHyphens(w) => {
+                        let w = if let NormalizedData::StrWithoutHyphens(_) = part {
+                            w.replace('-', "")
+                        } else {
+                            w.to_string()
+                        };
+                        w
+                    }
+                };
+                let mut chars = word.chars();
+                if let Some(first) = chars.next() {
+                    s.push(first.to_ascii_uppercase());
+                    s.extend(chars.flat_map(|c| c.to_lowercase()));
+                }
+            }
+            s
+        })
+    }
 }
 
 #[derive(Debug, Clone, Eq, binary_serialize_derive::BinarySerializable)]
@@ -203,6 +230,7 @@ impl<'a> UnifiedIdentifier<'a> {
         Self {
             original: original,
             normalized: normalize(original),
+            pascal_case: once_cell::unsync::OnceCell::new(),
         }
     }
 

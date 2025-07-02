@@ -12,6 +12,7 @@ pub(crate) use invocation::CallCheckingBehavior;
 pub use root::RootContext;
 
 use source_map::SpanWithSource;
+use unified_identifier::UnifiedIdentifier;
 
 use crate::{
 	context::environment::ExpectedReturnType,
@@ -388,7 +389,7 @@ impl<T: ContextType> Context<T> {
 	pub fn get_reference_constraint(&self, reference: Reference) -> Option<TypeId> {
 		match reference {
 			Reference::Variable(name, _) => {
-				self.get_variable_unbound(&name).map(|v| {
+				self.get_variable_unbound(&name.as_unified()).map(|v| {
 					match v.2 {
 						VariableOrImport::Variable { mutability, .. } => match mutability {
 							// TODO get value + object constraint
@@ -428,7 +429,7 @@ impl<T: ContextType> Context<T> {
 	/// **NOTE THIS IS RECURSIVE. Each step can append information**
 	fn get_variable_unbound(
 		&self,
-		variable_name: &str,
+		variable_name: &UnifiedIdentifier,
 	) -> Option<(bool, Option<Boundary>, &VariableOrImport)> {
 		// crate::utilities::notify!(
 		// 	"Looking for {:?}, self.variables = {:?}",
@@ -436,7 +437,7 @@ impl<T: ContextType> Context<T> {
 		// 	self.variables.keys().collect::<Vec<_>>()
 		// );
 
-		let local_variable = self.variables.get(variable_name);
+		let local_variable = self.variables.get(variable_name.as_str());
 		if let Some(local) = local_variable {
 			let is_root = self.context_type.get_parent().is_none();
 			let is_mutated = self.possibly_mutated_variables.contains(&local.get_id());

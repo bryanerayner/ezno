@@ -1,4 +1,4 @@
-use unified_identifier::{StringUnifiedIdentifier, UnifiedIdentifier};
+use unified_identifier::{ UnifiedIdentifier};
 
 use crate::{
 	errors::{ParseError, ParseErrors},
@@ -500,7 +500,7 @@ impl<'a> Lexer<'a> {
 
 									if !encountered_hyphen {
 										let encountered_space = chr == ' ';
-										if (encountered_space) {
+										if encountered_space {
 											standard_state = StandardState::EncounteredSingleSpace;
 										} else {		
 											let value = &current[..idx];
