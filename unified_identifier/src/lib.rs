@@ -1,3 +1,7 @@
+
+#[cfg(feature = "serde-serialize")]
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
 //! Unified identifier types – owned (`UnifiedIdentifierBuf`) and borrowed (`UnifiedIdentifier`)
 //! Similar to `PathBuf` / `Path` in the std‑lib, plus *canonical‑name* cache.
 
@@ -48,6 +52,39 @@ impl UnifiedIdentifierBuf {
     /// True string comparison *ignoring* style
     fn squash(&self) -> String { self.normalized.join("") }
 }
+
+
+#[cfg(feature = "serde-serialize")]
+impl Serialize for UnifiedIdentifierBuf {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.original)
+    }
+}
+
+#[cfg(feature = "serde-serialize")]
+impl<'de> Deserialize<'de> for UnifiedIdentifierBuf {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Ok(Self::new(s))
+    }
+}
+
+#[cfg(feature = "self-rust-tokenize")]
+impl self_rust_tokenize::SelfRustTokenize for UnifiedIdentifierBuf {
+    fn append_to_token_stream(
+        &self,
+        token_stream: &mut self_rust_tokenize::proc_macro2::TokenStream,
+    ) {
+        self.original.append_to_token_stream(token_stream);
+    }
+}
+
 
 /* ----- Borrow & display plumbing ---------------------------------------*/
 impl Deref for UnifiedIdentifierBuf { type Target = str; fn deref(&self) -> &str { &self.original } }
