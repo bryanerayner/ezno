@@ -7,6 +7,7 @@ use get_field_by_type::GetFieldByType;
 use source_map::Span;
 use std::fmt::Debug;
 use temporary_annex::Annex;
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{number::NumberRepresentation, ASTNode, Expression, ParseResult};
 
@@ -82,7 +83,7 @@ impl PropertyKeyKind for PublicOrPrivate {
 #[derive(Debug, PartialEq, Eq, Clone, get_field_by_type::GetFieldByType)]
 #[get_field_by_type_target(Span)]
 pub enum PropertyKey<T: PropertyKeyKind> {
-	Identifier(String, Span, T),
+	Identifier(UnifiedIdentifierBuf, Span, T),
 	StringLiteral(String, Quoted, Span),
 	NumberLiteral(NumberRepresentation, Span),
 	/// Includes anything in the `[...]` maybe a symbol

@@ -34,6 +34,8 @@ full-typescript = []
 [dependencies]
 visitable-derive = { path = "./visitable-derive", version = "0.0.9", package = "ezno-parser-visitable-derive" }
 
+unified_identifier = {path = "../unified_identifier"}
+
 derive-finite-automaton = "0.2"
 derive-debug-extras = { version = "0.3", features = [
   "auto-debug-single-tuple-inline",

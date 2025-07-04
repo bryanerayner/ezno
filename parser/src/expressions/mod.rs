@@ -23,6 +23,7 @@ use crate::extensions::is_expression::IsExpression;
 use derive_partial_eq_extras::PartialEqExtras;
 use get_field_by_type::GetFieldByType;
 use source_map::{Nullable, ToString};
+use unified_identifier::UnifiedIdentifierBuf;
 use visitable_derive::Visitable;
 
 pub mod arrow_function;
@@ -105,7 +106,7 @@ pub enum Expression {
 		position: Span,
 	},
 	/// e.g `x` or `(...).hi`
-	VariableReference(String, Span),
+	VariableReference(UnifiedIdentifierBuf, Span),
 	ThisReference(Span),
 	SuperExpression(SuperReference, Span),
 	/// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new.target
@@ -182,7 +183,7 @@ impl Eq for Expression {}
 #[apply(derive_ASTNode)]
 pub enum PropertyReference {
 	Standard {
-		property: String,
+		property: UnifiedIdentifierBuf,
 		is_private: bool,
 	},
 	#[cfg_attr(feature = "self-rust-tokenize", self_tokenize_field(0))]

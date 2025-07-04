@@ -2,7 +2,7 @@
 //! Similar to `PathBuf` / `Path` in the std‑lib, plus *canonical‑name* cache.
 
 use std::{borrow::Cow, fmt, hash::{Hash, Hasher}, ops::Deref};
-use once_cell::unsync::OnceCell;
+use once_cell::sync::OnceCell;
 
 /* -------------------------------------------------------------------------
  *  Normalised data representation (borrowed)

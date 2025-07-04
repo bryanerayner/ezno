@@ -11,6 +11,7 @@ use derive_partial_eq_extras::PartialEqExtras;
 use get_field_by_type::GetFieldByType;
 use iterator_endiate::EndiateIteratorExt;
 use source_map::Span;
+use unified_identifier::UnifiedIdentifierBuf;
 use visitable_derive::Visitable;
 
 use super::MultipleExpression;
@@ -20,7 +21,7 @@ use super::MultipleExpression;
 #[get_field_by_type_target(Span)]
 #[partial_eq_ignore_types(Span)]
 pub enum VariableOrPropertyAccess {
-	Variable(String, Span),
+	Variable(UnifiedIdentifierBuf, Span),
 	PropertyAccess {
 		parent: Box<Expression>,
 		property: PropertyReference,

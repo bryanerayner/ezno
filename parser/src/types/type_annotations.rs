@@ -8,6 +8,7 @@ use crate::{
 };
 use derive_partial_eq_extras::PartialEqExtras;
 use iterator_endiate::EndiateIteratorExt;
+use unified_identifier::UnifiedIdentifierBuf;
 
 use super::{interface::InterfaceMember, type_declarations::TypeParameter};
 
@@ -213,9 +214,9 @@ impl CommonTypes {
 #[apply(derive_ASTNode)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum TypeName {
-	Name(String),
+	Name(UnifiedIdentifierBuf),
 	// For `Intl.Int` or something
-	FromNamespace(Vec<String>),
+	FromNamespace(Vec<UnifiedIdentifierBuf>),
 }
 
 #[apply(derive_ASTNode)]
