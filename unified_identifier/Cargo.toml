@@ -12,8 +12,6 @@ self-rust-tokenize = ["dep:self-rust-tokenize", "source-map/self-rust-tokenize"]
 serde-serialize = ["dep:serde"]
 
 [dependencies]
-binary-serialize-derive = { path = "../checker/binary-serialize-derive", version = "0.0.3" }
-shared_types = {path = "../shared_types" }
 source-map = { version = "0.15", features = [
   "serde-serialize",
   "self-rust-tokenize",

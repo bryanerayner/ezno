@@ -3,6 +3,7 @@ members = [
   "parser",
   "parser/visitable-derive",
   "parser/generator",
+  "unified_identifier",
   "checker",
   "checker/binary-serialize-derive",
   "checker/specification",
