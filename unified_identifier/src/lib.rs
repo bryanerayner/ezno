@@ -1,9 +1,8 @@
+//! Unified identifier types – owned (`UnifiedIdentifierBuf`) and borrowed (`UnifiedIdentifier`)
+//! Similar to `PathBuf` / `Path` in the std‑lib, plus *canonical‑name* cache.
 
 #[cfg(feature = "serde-serialize")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-//! Unified identifier types – owned (`UnifiedIdentifierBuf`) and borrowed (`UnifiedIdentifier`)
-//! Similar to `PathBuf` / `Path` in the std‑lib, plus *canonical‑name* cache.
 
 use std::{borrow::Cow, fmt, hash::{Hash, Hasher}, ops::Deref};
 use once_cell::sync::OnceCell;

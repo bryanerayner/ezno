@@ -15,9 +15,10 @@ pub use visitors::*;
 pub use visitors_mut::*;
 
 mod ast {
-	use temporary_annex::Annex;
+        use temporary_annex::Annex;
 
-	use crate::block::{BlockLike, BlockLikeMut};
+        use crate::block::{BlockLike, BlockLikeMut};
+        use unified_identifier::UnifiedIdentifierBuf;
 
 	use super::{
 		BlockItem, BlockItemMut, Chain, Expression, ImmutableVariableOrProperty,
