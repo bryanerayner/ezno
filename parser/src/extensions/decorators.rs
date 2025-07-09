@@ -1,6 +1,7 @@
 use get_field_by_type::GetFieldByType;
 use iterator_endiate::EndiateIteratorExt;
 use source_map::Span;
+use unified_identifier::UnifiedIdentifierBuf;
 use visitable_derive::Visitable;
 
 use crate::{derive_ASTNode, ASTNode, Expression, ParseResult, Visitable};
@@ -8,7 +9,7 @@ use crate::{derive_ASTNode, ASTNode, Expression, ParseResult, Visitable};
 #[derive(Debug, PartialEq, Clone, Visitable)]
 #[apply(derive_ASTNode)]
 pub struct Decorator {
-	pub name: Vec<String>,
+	pub name: Vec<UnifiedIdentifierBuf>,
 	pub arguments: Option<Vec<Expression>>,
 	pub position: Span,
 }

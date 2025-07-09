@@ -7,6 +7,7 @@ use crate::{
 };
 
 use derive_partial_eq_extras::PartialEqExtras;
+use unified_identifier::UnifiedIdentifierBuf;
 use std::fmt::Debug;
 use visitable_derive::Visitable;
 
@@ -24,7 +25,7 @@ pub struct ObjectLiteral {
 #[get_field_by_type_target(Span)]
 pub enum ObjectLiteralMember {
 	Spread(Expression, Span),
-	Shorthand(String, Span),
+	Shorthand(UnifiedIdentifierBuf, Span),
 	Property {
 		key: WithComment<PropertyKey<AlwaysPublic>>,
 		/// Makes object destructuring syntax a subset of object literal syntax

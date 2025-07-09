@@ -121,7 +121,7 @@ impl ListItem for TypeAnnotation {
 #[derive(Debug, Clone, PartialEq)]
 #[apply(derive_ASTNode)]
 pub enum AnnotationWithBinder {
-	Annotated { name: String, ty: TypeAnnotation, position: Span },
+	Annotated { name: UnifiedIdentifierBuf, ty: TypeAnnotation, position: Span },
 	NoAnnotation(TypeAnnotation),
 }
 

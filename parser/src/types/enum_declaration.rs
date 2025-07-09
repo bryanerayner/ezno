@@ -1,13 +1,14 @@
 use crate::{declarations::classes::ClassMember, derive_ASTNode, ASTNode, Expression};
 use iterator_endiate::EndiateIteratorExt;
 use source_map::Span;
+use unified_identifier::UnifiedIdentifierBuf;
 use visitable_derive::Visitable;
 
 #[derive(Debug, Clone, PartialEq, Visitable)]
 #[apply(derive_ASTNode)]
 pub struct EnumDeclaration {
 	pub is_constant: bool,
-	pub name: String,
+	pub name: UnifiedIdentifierBuf,
 	pub members: Vec<EnumMember>,
 	pub position: Span,
 }
@@ -89,7 +90,7 @@ pub enum EnumMemberValue {
 #[derive(Debug, Clone, PartialEq, Visitable)]
 #[apply(derive_ASTNode)]
 pub struct EnumMember {
-	pub name: String,
+	pub name: UnifiedIdentifierBuf,
 	pub value: EnumMemberValue,
 	pub position: Span,
 }

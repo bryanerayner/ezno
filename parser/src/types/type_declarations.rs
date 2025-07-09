@@ -1,3 +1,5 @@
+use unified_identifier::UnifiedIdentifierBuf;
+
 use crate::{derive_ASTNode, ASTNode, ListItem, ParseResult, Span, TypeAnnotation};
 
 /// Represents a generic parameter. Can have default or constraint to extend a type or a key of a type
@@ -6,7 +8,7 @@ use crate::{derive_ASTNode, ASTNode, ListItem, ParseResult, Span, TypeAnnotation
 #[derive(Debug, Clone, PartialEq)]
 #[apply(derive_ASTNode)]
 pub struct TypeParameter {
-	pub name: String,
+	pub name: UnifiedIdentifierBuf,
 	pub default: Option<TypeAnnotation>,
 	pub extends: Option<TypeAnnotation>,
 	pub position: Span,

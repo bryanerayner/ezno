@@ -13,13 +13,14 @@ use crate::{
 use derive_partial_eq_extras::PartialEqExtras;
 use get_field_by_type::GetFieldByType;
 use iterator_endiate::EndiateIteratorExt;
+use unified_identifier::UnifiedIdentifierBuf;
 
 #[apply(derive_ASTNode)]
 #[derive(Debug, PartialEqExtras, Clone, GetFieldByType)]
 #[partial_eq_ignore_types(Span)]
 #[get_field_by_type_target(Span)]
 pub enum VariableIdentifier {
-	Standard(String, Span),
+	Standard(UnifiedIdentifierBuf, Span),
 	// TODO does this need Span
 	#[cfg_attr(feature = "self-rust-tokenize", self_tokenize_field(0))]
 	Marker(
