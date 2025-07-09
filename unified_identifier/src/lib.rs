@@ -110,8 +110,23 @@ pub struct UnifiedIdentifier<'a> {
 }
 
 impl<'a> UnifiedIdentifier<'a> {
+
+    pub fn new(s: &'a str) -> Self {
+        let original = s;
+        let normalized = string_normalize_normalize_part(&original);
+        Self { original, normalized, canonical: OnceCell::new() }
+    }
+
     pub fn original(&self) -> &str { self.original }
     pub fn canonical_name(&self) -> &str { self.canonical.get_or_init(|| canonical_name(self.original, &string_normalize(self.original))).as_str() }
+}
+
+impl<'a> ToOwned for UnifiedIdentifier<'a> {
+    type Owned = UnifiedIdentifierBuf;
+
+    fn to_owned(&self) -> Self::Owned {
+        UnifiedIdentifierBuf::new(self.original)
+    }
 }
 
 /* ----- Trait plumbing --------------------------------------------------*/
@@ -220,6 +235,32 @@ fn string_normalize(id: &str) -> Vec<String> {
         id.split('-').filter(|s| !s.is_empty()).map(|s| s.to_ascii_lowercase()).collect()
     } else {
         string_split_pascal_case(id)
+    }
+}
+
+fn string_normalize_normalize_part<'a>(id: &'a str) -> Vec<NormalizedPart<'a>> {
+    if id.contains(' ') || id.contains('_') {
+        id.split(|c| c == ' ' || c == '_')
+            .filter_map(|t| {
+                if t.is_empty() {
+                    None
+                } else if t.starts_with('-') || t.ends_with('-') || t == "-" {
+                    Some(NormalizedPart::Str(t))
+                } else {
+                    Some(NormalizedPart::StrNoHyphens(t))
+                }
+            })
+            .collect()
+    } else if id.contains('-') {
+        id.split('-')
+            .filter(|s| !s.is_empty())
+            .map(NormalizedPart::Str)
+            .collect()
+    } else {
+        string_split_pascal_case(id)
+            .into_iter()
+            .map(|s| NormalizedPart::Str(Box::leak(s.into_boxed_str())))
+            .collect()
     }
 }
 

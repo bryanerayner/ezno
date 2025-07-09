@@ -39,9 +39,9 @@ impl ASTNode for VariableIdentifier {
 		let identifier = reader.parse_identifier("variable identifier", true)?;
 		let position = start.with_length(identifier.len());
 		// TODO
-		if identifier == "let" {
+		if identifier.original() == "let" {
 			Err(ParseError::new(ParseErrors::ReservedIdentifier, start.with_length(3)))
-		} else if reader.get_options().interpolation_points && identifier == crate::marker::MARKER {
+		} else if reader.get_options().interpolation_points && identifier.original() == crate::marker::MARKER {
 			let span = start.with_length(0);
 			Ok(Self::Marker(reader.new_partial_point_marker(span), span))
 		} else {

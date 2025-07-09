@@ -1,3 +1,5 @@
+use unified_identifier::UnifiedIdentifier;
+
 use crate::{
 	errors::{ParseError, ParseErrors},
 	marker::Marker,
@@ -364,7 +366,7 @@ impl<'a> Lexer<'a> {
 		&mut self,
 		location: &'static str,
 		check_reserved: bool,
-	) -> Result<&'a str, ParseError> {
+	) -> Result<UnifiedIdentifier<'a>, ParseError> {
 		enum State {
 			Standard,
 			StartOfUnicode,
@@ -470,7 +472,7 @@ impl<'a> Lexer<'a> {
 								self.head += idx as u32;
 								Ok(value)
 							};
-							return result;
+							return UnifiedIdentifier::new(result);
 						}
 					}
 				}
