@@ -36,7 +36,7 @@ impl ASTNode for VariableIdentifier {
 
 	fn from_reader(reader: &mut crate::Lexer) -> ParseResult<Self> {
 		let start = reader.get_start();
-		let identifier = reader.parse_identifier("variable identifier", true)?;
+		let identifier: unified_identifier::UnifiedIdentifier<'_> = reader.parse_identifier("variable identifier", true)?;
 		let position = start.with_length(identifier.len());
 		// TODO
 		if identifier.original() == "let" {
@@ -68,7 +68,12 @@ impl VariableIdentifier {
 	#[must_use]
 	pub fn as_option_str(&self) -> Option<&str> {
 		match self {
-			VariableIdentifier::Standard(s, _) => Some(s.as_str()),
+			VariableIdentifier::Standard(s, _) => {
+				let r: &str = s.as_str();
+				let v = Some(r);
+
+				return v;
+			},
 			VariableIdentifier::Marker(_, _) => None,
 		}
 	}

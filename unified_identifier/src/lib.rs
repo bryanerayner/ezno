@@ -6,6 +6,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use std::{borrow::Cow, fmt, hash::{Hash, Hasher}, ops::Deref};
 use once_cell::sync::OnceCell;
+use std::borrow::Borrow;
 
 /* -------------------------------------------------------------------------
  *  Normalised data representation (borrowed)
@@ -13,9 +14,9 @@ use once_cell::sync::OnceCell;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NormalizedPart<'a> {
     /// Word kept *exactly* as in the original slice (but compared case‑insensitively)
-    Str(&'a str),
+    Str(Cow<'a, str>),
     /// Word where internal hyphens are **ignored** for equality / hashing
-    StrNoHyphens(&'a str),
+    StrNoHyphens(Cow<'a, str>),
 }
 
 /* -------------------------------------------------------------------------
@@ -29,12 +30,27 @@ pub struct UnifiedIdentifierBuf {
     canonical:  OnceCell<String>,   // cached canonical name (Pascal/camel)
 }
 
+impl Borrow<str> for UnifiedIdentifierBuf {
+    fn borrow(&self) -> &str {
+        &self.original
+    }
+}
+
 impl UnifiedIdentifierBuf {
     /* ----- ctor & accessors -------------------------------------------*/
     pub fn new<S: Into<String>>(s: S) -> Self {
         let original = s.into();
         let normalized = string_normalize(&original);
         Self { original, normalized, canonical: OnceCell::new() }
+    }
+
+    /// Returns a string slice of the original identifier.
+    pub fn as_str(&self) -> &str {
+        &self.original
+    }
+
+    pub fn len(&self) -> usize {
+        self.original.len()
     }
 
     /// Borrow as an *unsized* `UnifiedIdentifier` (zero‑cost)
@@ -102,7 +118,7 @@ impl From<UnifiedIdentifierBuf> for String      { fn from(id: UnifiedIdentifierB
 /* -------------------------------------------------------------------------
  *  Borrowed view – like `Path`
  * ---------------------------------------------------------------------*/
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct UnifiedIdentifier<'a> {
     original:   &'a str,
     normalized: Vec<NormalizedPart<'a>>,  // rebuilt cheaply – tiny
@@ -119,13 +135,17 @@ impl<'a> UnifiedIdentifier<'a> {
 
     pub fn original(&self) -> &str { self.original }
     pub fn canonical_name(&self) -> &str { self.canonical.get_or_init(|| canonical_name(self.original, &string_normalize(self.original))).as_str() }
-}
 
-impl<'a> ToOwned for UnifiedIdentifier<'a> {
-    type Owned = UnifiedIdentifierBuf;
+    pub fn len(&self) -> usize {
+        self.original.len()
+    }
 
-    fn to_owned(&self) -> Self::Owned {
+    pub fn to_owned(&self) -> UnifiedIdentifierBuf {
         UnifiedIdentifierBuf::new(self.original)
+    }
+
+    fn squash(&self) -> String {
+        self.normalized.iter().map(|p| part_cmp(p).as_ref().to_ascii_lowercase()).collect()
     }
 }
 
@@ -136,12 +156,12 @@ impl<'a> fmt::Display for UnifiedIdentifier<'a> { fn fmt(&self, f: &mut fmt::For
 
 impl<'a> PartialEq for UnifiedIdentifier<'a> {
     fn eq(&self, other: &Self) -> bool {
-        self.normalized.iter().map(part_cmp).eq(other.normalized.iter().map(part_cmp))
+        self.squash() == other.squash()
     }
 }
 impl<'a> Eq for UnifiedIdentifier<'a> {}
 impl<'a> Hash for UnifiedIdentifier<'a> {
-    fn hash<H: Hasher>(&self, state: &mut H) { for p in &self.normalized { part_cmp(p).hash(state) } }
+    fn hash<H: Hasher>(&self, state: &mut H) { self.squash().hash(state) }
 }
 
 /* ----- Conversions -----------------------------------------------------*/
@@ -149,7 +169,7 @@ impl<'a> From<&'a UnifiedIdentifierBuf> for UnifiedIdentifier<'a> {
     fn from(buf: &'a UnifiedIdentifierBuf) -> Self {
         Self {
             original:   &buf.original,
-            normalized: buf.normalized.iter().map(|s| NormalizedPart::Str(s)).collect(),
+            normalized: buf.normalized.iter().map(|s| NormalizedPart::Str(Cow::Borrowed(s.as_str()))).collect(),
             canonical:  OnceCell::new(),
         }
     }
@@ -180,8 +200,8 @@ fn lowercase_first(s: &str) -> String { let mut it = s.chars(); match it.next() 
 
 fn part_cmp<'a>(p: &NormalizedPart<'a>) -> Cow<'a, str> {
     match p {
-        NormalizedPart::Str(s)          => Cow::Borrowed(*s),
-        NormalizedPart::StrNoHyphens(s) => Cow::Owned(s.replace('-', "")),
+        NormalizedPart::Str(s)          => s.clone(),
+        NormalizedPart::StrNoHyphens(s) => Cow::Owned(s.as_ref().replace('-', "")),
     }
 }
 
@@ -245,21 +265,21 @@ fn string_normalize_normalize_part<'a>(id: &'a str) -> Vec<NormalizedPart<'a>> {
                 if t.is_empty() {
                     None
                 } else if t.starts_with('-') || t.ends_with('-') || t == "-" {
-                    Some(NormalizedPart::Str(t))
+                    Some(NormalizedPart::Str(Cow::Borrowed(t)))
                 } else {
-                    Some(NormalizedPart::StrNoHyphens(t))
+                    Some(NormalizedPart::StrNoHyphens(Cow::Borrowed(t)))
                 }
             })
             .collect()
     } else if id.contains('-') {
         id.split('-')
             .filter(|s| !s.is_empty())
-            .map(NormalizedPart::Str)
+            .map(|s| NormalizedPart::Str(Cow::Borrowed(s)))
             .collect()
     } else {
         string_split_pascal_case(id)
             .into_iter()
-            .map(|s| NormalizedPart::Str(Box::leak(s.into_boxed_str())))
+            .map(|s| NormalizedPart::Str(Cow::Owned(s)))
             .collect()
     }
 }
@@ -328,9 +348,9 @@ mod tests {
     #[test] fn digit_boundary() {
         let a = uidb!("GL3DModel");
         assert_eq!(a.as_id().normalized, vec![
-            NormalizedPart::Str("gl"),
-            NormalizedPart::Str("3d"),
-            NormalizedPart::Str("model"),
+            NormalizedPart::Str(Cow::Borrowed("gl")),
+            NormalizedPart::Str(Cow::Borrowed("3d")),
+            NormalizedPart::Str(Cow::Borrowed("model")),
         ]);
     }
 }

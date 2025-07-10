@@ -3,6 +3,7 @@ pub mod import;
 
 use get_field_by_type::GetFieldByType;
 use source_map::Span;
+use unified_identifier::UnifiedIdentifierBuf;
 use visitable_derive::Visitable;
 
 use crate::{derive_ASTNode, Marker, ParseError, ParseErrors, Quoted};
@@ -161,7 +162,7 @@ impl<U: ImportOrExport> self_rust_tokenize::SelfRustTokenize for ImportExportPar
 #[derive(Debug, Clone, PartialEq)]
 #[apply(derive_ASTNode)]
 pub enum ImportExportName {
-	Reference(String),
+	Reference(UnifiedIdentifierBuf),
 	Quoted(String, Quoted),
 	/// For typing here
 	#[cfg_attr(feature = "self-rust-tokenize", self_tokenize_field(0))]
@@ -187,8 +188,8 @@ impl ImportExportName {
 			let marker = reader.new_partial_point_marker(position);
 			Ok((ImportExportName::Marker(marker), position))
 		} else {
-			let identifier = reader.parse_identifier("import alias", false)?.to_owned();
-			if reader.get_options().interpolation_points && identifier == crate::marker::MARKER {
+			let identifier: UnifiedIdentifierBuf = reader.parse_identifier("import alias", false)?.to_owned();
+			if reader.get_options().interpolation_points && identifier.as_str() == crate::marker::MARKER {
 				let position = start.with_length(0);
 				Ok((ImportExportName::Marker(reader.new_partial_point_marker(position)), position))
 			} else {
