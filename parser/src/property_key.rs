@@ -12,7 +12,7 @@ use unified_identifier::UnifiedIdentifierBuf;
 use crate::{number::NumberRepresentation, ASTNode, Expression, ParseResult};
 
 pub trait PropertyKeyKind: Debug + PartialEq + Eq + Clone + Sized + Send + Sync + 'static {
-	fn parse_identifier(reader: &mut crate::Lexer) -> ParseResult<(String, Span, Self)>;
+	fn parse_identifier(reader: &mut crate::Lexer) -> ParseResult<(UnifiedIdentifierBuf, Span, Self)>;
 
 	fn is_private(&self) -> bool;
 
@@ -32,7 +32,7 @@ pub struct AlwaysPublic;
 // ";
 
 impl PropertyKeyKind for AlwaysPublic {
-	fn parse_identifier(reader: &mut crate::Lexer) -> ParseResult<(String, Span, Self)> {
+	fn parse_identifier(reader: &mut crate::Lexer) -> ParseResult<(UnifiedIdentifierBuf, Span, Self)> {
 		let start = reader.get_start();
 		let name = reader.parse_identifier("propery key", false)?;
 		Ok((name.to_owned(), start.with_length(name.len()), Self::new_public()))
@@ -62,7 +62,7 @@ pub enum PublicOrPrivate {
 // ";
 
 impl PropertyKeyKind for PublicOrPrivate {
-	fn parse_identifier(reader: &mut crate::Lexer) -> ParseResult<(String, Span, Self)> {
+	fn parse_identifier(reader: &mut crate::Lexer) -> ParseResult<(UnifiedIdentifierBuf, Span, Self)> {
 		let start = reader.get_start();
 		let publicity = if reader.is_operator_advance("#") { Self::Private } else { Self::Public };
 		let name = reader.parse_identifier("property key", false)?;
@@ -102,7 +102,10 @@ impl<U: PropertyKeyKind> PropertyKey<U> {
 impl<U: PropertyKeyKind> PartialEq<str> for PropertyKey<U> {
 	fn eq(&self, other: &str) -> bool {
 		match self {
-			PropertyKey::Identifier(name, _, _) | PropertyKey::StringLiteral(name, _, _) => {
+			PropertyKey::Identifier(name, _, _) => {
+				name == other
+			}
+			PropertyKey::StringLiteral(name, _, _) => {
 				name == other
 			}
 			PropertyKey::NumberLiteral(_, _) | PropertyKey::Computed(_, _) => false,

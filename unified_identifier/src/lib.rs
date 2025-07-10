@@ -68,6 +68,11 @@ impl UnifiedIdentifierBuf {
     fn squash(&self) -> String { self.normalized.join("") }
 }
 
+impl PartialEq<str> for UnifiedIdentifierBuf {
+    fn eq(&self, other: &str) -> bool {
+        self.as_str() == other
+    }
+}
 
 #[cfg(feature = "serde-serialize")]
 impl Serialize for UnifiedIdentifierBuf {
@@ -354,3 +359,4 @@ mod tests {
         ]);
     }
 }
+

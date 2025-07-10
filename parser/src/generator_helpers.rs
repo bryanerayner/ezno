@@ -1,3 +1,5 @@
+use unified_identifier::UnifiedIdentifierBuf;
+
 use crate::{ASTNode, Expression, PropertyReference, Statement, VariableIdentifier};
 
 /// A trait which means that self can be pushed to a [`TokenSender`]
@@ -21,7 +23,7 @@ impl<'a> From<&'a str> for Ident<'a> {
 
 impl IntoAST<Expression> for Ident<'_> {
 	fn into_ast(self) -> Expression {
-		Expression::VariableReference(self.0.to_owned(), source_map::Nullable::NULL)
+		Expression::VariableReference(UnifiedIdentifierBuf::from(self.0), source_map::Nullable::NULL)
 	}
 }
 
@@ -37,13 +39,13 @@ impl IntoAST<Expression> for &str {
 
 impl IntoAST<PropertyReference> for &str {
 	fn into_ast(self) -> PropertyReference {
-		PropertyReference::Standard { property: self.to_owned(), is_private: false }
+		PropertyReference::Standard { property: UnifiedIdentifierBuf::from(self), is_private: false }
 	}
 }
 
 impl IntoAST<VariableIdentifier> for &str {
 	fn into_ast(self) -> VariableIdentifier {
-		VariableIdentifier::Standard(self.to_owned(), source_map::Nullable::NULL)
+		VariableIdentifier::Standard(UnifiedIdentifierBuf::from(self), source_map::Nullable::NULL)
 	}
 }
 
