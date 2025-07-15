@@ -2,6 +2,7 @@ use crate::{
 	ast::FunctionArgument, derive_ASTNode, ASTNode, Expression, ParseError, ParseErrors,
 	ParseResult, Span,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 use visitable_derive::Visitable;
 
 #[apply(derive_ASTNode)]
@@ -17,7 +18,7 @@ pub enum JSXRoot {
 #[get_field_by_type_target(Span)]
 pub struct JSXElement {
 	/// Name of the element (TODO or reference to element)
-	pub tag_name: String,
+	pub tag_name: UnifiedIdentifierBuf,
 	pub attributes: Vec<JSXAttribute>,
 	pub children: JSXElementChildren,
 	pub position: Span,
@@ -93,12 +94,12 @@ impl ASTNode for JSXElement {
 						let attribute = if reader.is_operator_advance("{") {
 							let expression = Expression::from_reader(reader)?;
 							let end = reader.expect('}')?;
-							JSXAttribute::Dynamic(key, Box::new(expression), start.union(end))
+							JSXAttribute::Dynamic(UnifiedIdentifierBuf::from(key), Box::new(expression), start.union(end))
 						} else if reader.starts_with_string_delimeter() {
 							// TODO _quoted
 							let (content, _quoted) = reader.parse_string_literal()?;
 							let position = start.with_length(content.len() + 2);
-							JSXAttribute::Static(key, content.to_owned(), position)
+							JSXAttribute::Static(UnifiedIdentifierBuf::from(key), content.to_owned(), position)
 						} else {
 							let (_found, position) = crate::lexer::utilities::next_item(reader);
 							return Err(ParseError::new(
@@ -143,7 +144,7 @@ impl ASTNode for JSXElement {
 				return Err(ParseError::new(
 					crate::ParseErrors::ClosingTagDoesNotMatch {
 						tag_name: &tag_name,
-						closing_tag_name,
+						closing_tag_name: closing_tag_name.original(),
 					},
 					start.with_length(closing_tag_name.len() + 2),
 				));
@@ -165,7 +166,7 @@ impl ASTNode for JSXElement {
 				return Err(ParseError::new(
 					crate::ParseErrors::ClosingTagDoesNotMatch {
 						tag_name: &tag_name,
-						closing_tag_name,
+						closing_tag_name: &closing_tag_name.original(),
 					},
 					start.with_length(closing_tag_name.len() + 2),
 				));
@@ -230,9 +231,9 @@ impl ASTNode for JSXElement {
 #[derive(Debug, Clone, PartialEq, Visitable)]
 #[apply(derive_ASTNode)]
 pub enum JSXAttribute {
-	Static(String, String, Span),
-	Dynamic(String, Box<Expression>, Span),
-	Boolean(String, Span),
+	Static(UnifiedIdentifierBuf, String, Span),
+	Dynamic(UnifiedIdentifierBuf, Box<Expression>, Span),
+	Boolean(UnifiedIdentifierBuf, Span),
 	Spread(Expression, Span),
 	/// Preferably want a identifier here not an expr
 	Shorthand(Expression),

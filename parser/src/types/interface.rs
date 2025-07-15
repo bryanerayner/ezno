@@ -8,6 +8,7 @@ use crate::{
 
 use get_field_by_type::GetFieldByType;
 use iterator_endiate::EndiateIteratorExt;
+use unified_identifier::UnifiedIdentifierBuf;
 
 #[apply(derive_ASTNode)]
 #[derive(Debug, Clone, PartialEq, get_field_by_type::GetFieldByType)]
@@ -156,7 +157,7 @@ pub enum InterfaceMember {
 		position: Span,
 	},
 	Indexer {
-		name: String,
+		name: UnifiedIdentifierBuf,
 		indexer_type: TypeAnnotation,
 		return_type: TypeAnnotation,
 		is_readonly: bool,
@@ -182,7 +183,7 @@ pub enum InterfaceMember {
 	},
 	/// [For mapped types](https://www.typescriptlang.org/docs/handbook/2/mapped-types.html)
 	Rule {
-		parameter: String,
+		parameter: UnifiedIdentifierBuf,
 		matching_type: Box<TypeAnnotation>,
 		as_type: Option<Box<TypeAnnotation>>,
 		optionality: Optionality,

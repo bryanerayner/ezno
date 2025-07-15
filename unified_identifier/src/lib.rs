@@ -169,7 +169,7 @@ impl<'a> Hash for UnifiedIdentifier<'a> {
     fn hash<H: Hasher>(&self, state: &mut H) { self.squash().hash(state) }
 }
 
-/* ----- Conversions -----------------------------------------------------*/
+/* ----- Conversions ----------------------------------------------------- */
 impl<'a> From<&'a UnifiedIdentifierBuf> for UnifiedIdentifier<'a> {
     fn from(buf: &'a UnifiedIdentifierBuf) -> Self {
         Self {
@@ -180,6 +180,11 @@ impl<'a> From<&'a UnifiedIdentifierBuf> for UnifiedIdentifier<'a> {
     }
 }
 
+impl<'a> From<UnifiedIdentifier<'a>> for UnifiedIdentifierBuf {
+    fn from(value: UnifiedIdentifier<'a>) -> Self {
+        UnifiedIdentifierBuf::new(value.original)
+    }
+}
 /* -------------------------------------------------------------------------
  *  Helpers – canonical name & normalisation
  * ---------------------------------------------------------------------*/

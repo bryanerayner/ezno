@@ -291,6 +291,7 @@ mod structures {
 	};
 	use source_map::Span;
 	use temporary_annex::{Annex, Annexable};
+use unified_identifier::UnifiedIdentifierBuf;
 
 	#[derive(Debug, Clone)]
 	pub enum ChainVariable {
@@ -373,7 +374,7 @@ mod structures {
 
 	#[derive(Debug)]
 	pub enum MutableVariableOrProperty<'a> {
-		VariableFieldName(&'a mut String),
+		VariableFieldName(&'a mut UnifiedIdentifierBuf),
 		// TODO these should maybe only be the spread variables
 		ArrayDestructuringMember(&'a mut ArrayDestructuringField<VariableField>),
 		ObjectDestructuringMember(&'a mut WithComment<ObjectDestructuringField<VariableField>>),

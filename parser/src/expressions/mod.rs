@@ -505,7 +505,7 @@ impl Expression {
 
 				let name = reader.parse_identifier("variable reference expression", true)?;
 
-				if reader.get_options().interpolation_points && name == crate::marker::MARKER {
+				if reader.get_options().interpolation_points && name.original() == crate::marker::MARKER {
 					let position = start.with_length(0);
 					let marker_id = reader.new_partial_point_marker(position);
 					Expression::Marker { marker_id, position }
@@ -1840,7 +1840,7 @@ pub enum TypeOrConst {
 #[derive(PartialEqExtras, Debug, Clone, Visitable)]
 #[partial_eq_ignore_types(Span)]
 pub enum InExpressionLHS {
-	PrivateProperty(String),
+	PrivateProperty(UnifiedIdentifierBuf),
 	Expression(Box<Expression>),
 }
 
@@ -2074,7 +2074,7 @@ impl Expression {
 #[partial_eq_ignore_types(Span)]
 pub enum SuperReference {
 	Call { arguments: Vec<FunctionArgument> },
-	PropertyAccess { property: String },
+	PropertyAccess { property: UnifiedIdentifierBuf },
 	Index { indexer: Box<Expression> },
 }
 

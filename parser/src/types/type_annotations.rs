@@ -222,7 +222,7 @@ pub enum TypeName {
 #[apply(derive_ASTNode)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum IsItem {
-	Reference(String),
+	Reference(UnifiedIdentifierBuf),
 	This,
 }
 
@@ -763,7 +763,7 @@ impl TypeAnnotation {
 			) -> Result<(IsItem, Span), TypeAnnotation> {
 				match reference {
 					TypeAnnotation::CommonName(name, span) => {
-						Ok((IsItem::Reference(name.name().to_owned()), span))
+						Ok((IsItem::Reference(UnifiedIdentifierBuf::from(name.name())), span))
 					}
 					TypeAnnotation::Name(TypeName::Name(name), span) => {
 						Ok((IsItem::Reference(name), span))
@@ -1039,7 +1039,7 @@ pub struct TypeAnnotationFunctionParameter {
 #[apply(derive_ASTNode)]
 pub struct TypeAnnotationSpreadFunctionParameter {
 	pub decorators: Vec<Decorator>,
-	pub name: String,
+	pub name: UnifiedIdentifierBuf,
 	pub type_annotation: TypeAnnotation,
 	pub position: Span,
 }
