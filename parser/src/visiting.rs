@@ -291,7 +291,7 @@ mod structures {
 	};
 	use source_map::Span;
 	use temporary_annex::{Annex, Annexable};
-use unified_identifier::UnifiedIdentifierBuf;
+use unified_identifier::{UnifiedIdentifier, UnifiedIdentifierBuf};
 
 	#[derive(Debug, Clone)]
 	pub enum ChainVariable {
@@ -362,7 +362,7 @@ use unified_identifier::UnifiedIdentifierBuf;
 	#[derive(Debug)]
 	pub enum ImmutableVariableOrProperty<'a> {
 		// TODO maybe WithComment on some of these
-		VariableFieldName(&'a str, &'a Span),
+		VariableFieldName(UnifiedIdentifier<'a>, &'a Span),
 		// TODO these should maybe only be the spread variables
 		ArrayDestructuringMember(&'a ArrayDestructuringField<VariableField>),
 		ObjectDestructuringMember(&'a WithComment<ObjectDestructuringField<VariableField>>),
@@ -386,14 +386,14 @@ use unified_identifier::UnifiedIdentifierBuf;
 
 	impl<'a> ImmutableVariableOrProperty<'a> {
 		#[must_use]
-		pub fn get_variable_name(&self) -> Option<&'a str> {
+		pub fn get_variable_name(&self) -> Option<UnifiedIdentifier<'a>> {
 			match self {
-				ImmutableVariableOrProperty::VariableFieldName(name, _) => Some(name),
+				ImmutableVariableOrProperty::VariableFieldName(name, _) => Some(name.clone()),
 				ImmutableVariableOrProperty::ArrayDestructuringMember(_) => None,
 				ImmutableVariableOrProperty::ObjectDestructuringMember(o) => {
 					match o.get_ast_ref() {
 						ObjectDestructuringField::Name(VariableIdentifier::Standard(a, ..), ..) => {
-							Some(a.as_str())
+							Some(a.as_id())
 						}
 						_ => None,
 					}
@@ -401,7 +401,7 @@ use unified_identifier::UnifiedIdentifierBuf;
 				ImmutableVariableOrProperty::FunctionName(name)
 				| ImmutableVariableOrProperty::ClassName(name) => {
 					if let Some(VariableIdentifier::Standard(name, _)) = name {
-						Some(name)
+						Some(name.as_id())
 					} else {
 						None
 					}

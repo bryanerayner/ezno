@@ -59,6 +59,8 @@ impl UnifiedIdentifierBuf {
     /// Spelling exactly as author wrote it.
     pub fn original(&self) -> &str { &self.original }
 
+    pub fn original_string(&self) -> &String { &self.original }
+
     /// Canonical name (PascalCase with optional lower‑first) – cached.
     pub fn canonical_name(&self) -> &str {
         self.canonical.get_or_init(|| canonical_name(&self.original, &self.normalized)).as_str()
@@ -128,6 +130,16 @@ pub struct UnifiedIdentifier<'a> {
     original:   &'a str,
     normalized: Vec<NormalizedPart<'a>>,  // rebuilt cheaply – tiny
     canonical:  OnceCell<String>,
+}
+
+impl<'a> Clone for UnifiedIdentifier<'a> {
+    fn clone(&self) -> Self {
+        Self {
+            original: self.original,
+            normalized: self.normalized.clone(),
+            canonical: OnceCell::new(),
+        }
+    }
 }
 
 impl<'a> UnifiedIdentifier<'a> {

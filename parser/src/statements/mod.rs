@@ -11,6 +11,7 @@ use crate::{
 use derive_enum_from_into::{EnumFrom, EnumTryInto};
 use derive_partial_eq_extras::PartialEqExtras;
 use get_field_by_type::GetFieldByType;
+use unified_identifier::UnifiedIdentifierBuf;
 use std::fmt::Debug;
 
 use super::{expressions::MultipleExpression, ASTNode, Block, Expression, ParseResult, Span};
@@ -42,9 +43,9 @@ pub enum Statement {
 	// Control flow
 	Return(ReturnStatement),
 	// TODO maybe an actual label struct instead of `Option<String>`
-	Continue(Option<String>, Span),
+	Continue(Option<UnifiedIdentifierBuf>, Span),
 	// TODO maybe an actual label struct instead of `Option<String>`
-	Break(Option<String>, Span),
+	Break(Option<UnifiedIdentifierBuf>, Span),
 	/// e.g `throw ...`
 	Throw(ThrowStatement),
 	// Comments
@@ -52,7 +53,7 @@ pub enum Statement {
 	MultiLineComment(String, Span),
 	Labelled {
 		position: Span,
-		name: String,
+		name: UnifiedIdentifierBuf,
 		statement: Box<Statement>,
 	},
 	VarVariable(VarVariableStatement),

@@ -431,7 +431,7 @@ impl Visitable for VariableField {
 		match self {
 			VariableField::Name(id) => {
 				if let VariableIdentifier::Standard(name, pos) = id {
-					let item = ImmutableVariableOrProperty::VariableFieldName(name, pos);
+					let item = ImmutableVariableOrProperty::VariableFieldName(name.as_id(), pos);
 					visitors.visit_variable(&item, data, chain);
 				}
 			}

@@ -548,7 +548,7 @@ pub(super) fn synthesise_expression<T: crate::ReadFromFS>(
 										Publicity::Public
 									};
 									let property =
-										PropertyKey::String(Cow::Owned(property.clone()));
+										PropertyKey::UnifiedIdentifier(property.as_id());
 
 									let position = position.with_source(environment.get_source());
 									match crate::features::delete_operator(

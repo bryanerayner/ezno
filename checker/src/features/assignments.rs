@@ -6,6 +6,7 @@ use crate::{
 };
 
 use super::operations::{LogicalOperator, MathematicalOrBitwiseOperation};
+use unified_identifier::UnifiedIdentifierBuf;
 
 /// A single or multiple items to assign to
 pub enum Assignable<A: crate::ASTImplementation> {
@@ -17,7 +18,7 @@ pub enum Assignable<A: crate::ASTImplementation> {
 /// TODO Can this use lifetimes?
 #[derive(Clone)]
 pub enum Reference {
-	Variable(String, SpanWithSource),
+	Variable(UnifiedIdentifierBuf, SpanWithSource),
 	Property {
 		on: TypeId,
 		with: PropertyKey<'static>,
@@ -88,6 +89,6 @@ impl Reference {
 	/// for LSP
 	#[must_use]
 	pub fn new_empty_variable_reference(position: SpanWithSource) -> Self {
-		Self::Variable(String::new(), position)
+		Self::Variable(UnifiedIdentifierBuf::new(String::new()), position)
 	}
 }

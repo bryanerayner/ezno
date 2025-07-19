@@ -8,6 +8,7 @@ use ezno_parser::{
 	ASTNode, Declaration, Decorated, Expression, Module, Statement, StatementOrDeclaration,
 	StatementPosition, VariableIdentifier,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let args = std::env::args().skip(1).collect::<Vec<_>>();
@@ -123,7 +124,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 				block_visitors: Default::default(),
 			};
 
-			module.visit::<HashSet<String>>(
+			module.visit::<HashSet<UnifiedIdentifierBuf>>(
 				&mut visitors,
 				&mut names,
 				&VisitOptions { visit_nested_blocks: false, reverse_statements: false },
@@ -293,13 +294,13 @@ struct NameFinder;
 impl<'a>
 	ezno_parser::visiting::Visitor<
 		ezno_parser::visiting::ImmutableVariableOrProperty<'a>,
-		HashSet<String>,
+		HashSet<UnifiedIdentifierBuf>,
 	> for NameFinder
 {
 	fn visit(
 		&mut self,
 		item: &ezno_parser::visiting::ImmutableVariableOrProperty<'a>,
-		data: &mut HashSet<String>,
+		data: &mut HashSet<UnifiedIdentifierBuf>,
 		_chain: &ezno_parser::visiting::Chain,
 	) {
 		if let Some(name) = item.get_variable_name() {

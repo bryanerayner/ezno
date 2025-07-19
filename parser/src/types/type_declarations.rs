@@ -1,6 +1,6 @@
 use unified_identifier::UnifiedIdentifierBuf;
 
-use crate::{derive_ASTNode, ASTNode, ListItem, ParseErrors, ParseIdentifierResult, ParseResult, Span, TypeAnnotation};
+use crate::{derive_ASTNode, ASTNode, ListItem, ParseResult, Span, TypeAnnotation};
 
 /// Represents a generic parameter. Can have default or constraint to extend a type or a key of a type
 ///
@@ -30,20 +30,9 @@ impl ASTNode for TypeParameter {
 		let is_constant = reader.is_keyword_advance("const");
 
 		let start = reader.get_start();
-		let name: UnifiedIdentifierBuf = match reader.parse_identifier("type parameter name", false)? {
-			ParseIdentifierResult::Identifier(id) => id,
-			ParseIdentifierResult::Str(s) => {
-				
-				return Err(crate::ParseError::new(
-					ParseErrors::UnexpectedRemainingContentAfterIdentifier {
-						remaining_content: s
-					},
-					reader.get_start(),
-				));
-			}
-		};
+		let name = reader.parse_identifier("type parameter name", false)?.to_owned();
 
-
+		
 
 		let extends = reader
 			.is_keyword_advance("extends")

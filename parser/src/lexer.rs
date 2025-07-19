@@ -371,7 +371,7 @@ impl<'a> Lexer<'a> {
 		&mut self,
 		location: &'static str,
 		check_reserved: bool,
-	) -> Result<ParseIdentiferResult<'a>, ParseError> {
+	) -> Result<UnifiedIdentifier<'a>, ParseError> {
 		enum State {
 			Standard,
 			StartOfUnicode,
@@ -479,7 +479,7 @@ impl<'a> Lexer<'a> {
 							};
 							return match result {
 								Ok(s) => {
-									Ok(ParseIdentiferResult::UnifiedIdentifier(UnifiedIdentifier::new(s)))
+									Ok(UnifiedIdentifier::new(s))
 								},
 								Err(e) => Err(e)
 							};
@@ -503,7 +503,7 @@ impl<'a> Lexer<'a> {
 			Err(ParseError::new(ParseErrors::ReservedIdentifier, start.with_length(current.len())))
 		} else {
 			self.head += current.len() as u32;
-			Ok(ParseIdentiferResult::Str(current))
+			Ok(UnifiedIdentifier::new(current))
 		}
 	}
 

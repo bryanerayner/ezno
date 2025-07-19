@@ -4,6 +4,7 @@ use parser::{
 	declarations::VariableDeclarationItem, ASTNode, ArrayDestructuringField, Expression,
 	ObjectDestructuringField, SpreadDestructuringField, VariableField, VariableIdentifier,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 use super::expressions::synthesise_expression;
 use crate::{
@@ -340,8 +341,8 @@ fn assign_initial_to_fields<T: crate::ReadFromFS>(
 					environment.context_type.scope
 				{
 					let name = match name {
-						VariableIdentifier::Standard(ref name, _) => name.to_owned(),
-						VariableIdentifier::Marker(_, _) => "?".to_owned(),
+						VariableIdentifier::Standard(name, _) => name,
+						VariableIdentifier::Marker(_, _) => UnifiedIdentifierBuf::new("?".to_string()),
 					};
 					exported.named.insert(name, (id, mutability));
 				} else {

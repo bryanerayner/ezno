@@ -112,7 +112,7 @@ impl ASTNode for JSXElement {
 					delimiter => {
 						// Boolean attributes
 						let position = start.with_length(key.len());
-						let attribute = JSXAttribute::Boolean(key, position);
+						let attribute = JSXAttribute::Boolean(UnifiedIdentifierBuf::new(key), position);
 						attributes.push(attribute);
 						if delimiter == ">" {
 							break;

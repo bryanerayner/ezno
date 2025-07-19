@@ -206,7 +206,7 @@ fn synthesise_object_property_key(
 ) -> PropertyKey<'static> {
 	match name {
 		parser::VariableIdentifier::Standard(name, _pos) => {
-			PropertyKey::String(Cow::Owned(name.to_owned()))
+			PropertyKey::String(Cow::Owned(name.original_string().clone()))
 		}
 		parser::VariableIdentifier::Marker(..) => PropertyKey::new_empty_property_key(),
 	}
@@ -240,7 +240,7 @@ pub(crate) fn synthesise_access_to_reference<T: crate::ReadFromFS>(
 						if *is_private { Publicity::Private } else { Publicity::Public };
 					Reference::Property {
 						on: parent_ty,
-						with: PropertyKey::String(Cow::Owned(property.clone())),
+						with: PropertyKey::String(Cow::Owned(property.original_string().clone())),
 						position: position.with_source(environment.get_source()),
 						publicity,
 					}
