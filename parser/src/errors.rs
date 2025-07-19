@@ -69,6 +69,10 @@ pub enum ParseErrors<'a> {
 	/// TODO this could be set to collect, rather than breaking (<https://github.com/kaleidawave/ezno/issues/203>)
 	TaggedTemplateCannotBeUsedWithOptionalChain,
 	ExpectedExpression,
+
+	UnexpectedRemainingContentAfterIdentifier {
+		remaining_content: &'a str
+	}
 }
 
 impl Display for ParseErrors<'_> {

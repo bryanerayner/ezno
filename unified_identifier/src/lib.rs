@@ -170,6 +170,21 @@ impl<'a> Hash for UnifiedIdentifier<'a> {
 }
 
 /* ----- Conversions ----------------------------------------------------- */
+
+// Implement PartialEq<UnifiedIdentifierBuf> for UnifiedIdentifier<'a>
+impl<'a> PartialEq<UnifiedIdentifierBuf> for UnifiedIdentifier<'a> {
+    fn eq(&self, other: &UnifiedIdentifierBuf) -> bool {
+        self.squash() == other.squash()
+    }
+}
+
+// Implement PartialEq<UnifiedIdentifier<'a>> for UnifiedIdentifierBuf
+impl<'a> PartialEq<UnifiedIdentifier<'a>> for UnifiedIdentifierBuf {
+    fn eq(&self, other: &UnifiedIdentifier<'a>) -> bool {
+        self.squash() == other.squash()
+    }
+}
+
 impl<'a> From<&'a UnifiedIdentifierBuf> for UnifiedIdentifier<'a> {
     fn from(buf: &'a UnifiedIdentifierBuf) -> Self {
         Self {

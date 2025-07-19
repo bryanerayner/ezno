@@ -322,9 +322,11 @@ impl ASTNode for InterfaceMember {
 
 					// Catch for computed symbol: e.g. `[Symbol.instanceOf()]`, rather than indexer
 					if reader.is_operator(".") {
+
+						let name_len = name.len();
 						let top = Expression::VariableReference(
 							name.into(),
-							start.with_length(name.len()),
+							start.with_length(name_len),
 						);
 						let expression =
 							Expression::from_reader_after_first_expression(reader, 0, top)?;

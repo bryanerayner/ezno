@@ -44,6 +44,11 @@ pub struct Lexer<'a> {
 	state: ParsingState,
 }
 
+pub enum ParseIdentiferResult<'a> {
+	UnifiedIdentifier(UnifiedIdentifier<'a>),
+	Str(&'a str)
+}
+
 #[allow(clippy::manual_find)]
 impl<'a> Lexer<'a> {
 	// (crate)
@@ -366,7 +371,7 @@ impl<'a> Lexer<'a> {
 		&mut self,
 		location: &'static str,
 		check_reserved: bool,
-	) -> Result<UnifiedIdentifier<'a>, ParseError> {
+	) -> Result<ParseIdentiferResult<'a>, ParseError> {
 		enum State {
 			Standard,
 			StartOfUnicode,
@@ -472,7 +477,12 @@ impl<'a> Lexer<'a> {
 								self.head += idx as u32;
 								Ok(value)
 							};
-							return UnifiedIdentifier::new(result);
+							return match result {
+								Ok(s) => {
+									Ok(ParseIdentiferResult::UnifiedIdentifier(UnifiedIdentifier::new(s)))
+								},
+								Err(e) => Err(e)
+							};
 						}
 					}
 				}
@@ -493,7 +503,7 @@ impl<'a> Lexer<'a> {
 			Err(ParseError::new(ParseErrors::ReservedIdentifier, start.with_length(current.len())))
 		} else {
 			self.head += current.len() as u32;
-			Ok(current)
+			Ok(ParseIdentiferResult::Str(current))
 		}
 	}
 

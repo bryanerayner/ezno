@@ -1,5 +1,6 @@
 use get_field_by_type::GetFieldByType;
 use source_map::Span;
+use unified_identifier::UnifiedIdentifierBuf;
 use visitable_derive::Visitable;
 
 use crate::{derive_ASTNode, Block};
@@ -9,7 +10,7 @@ use crate::{derive_ASTNode, Block};
 #[get_field_by_type_target(Span)]
 pub struct Namespace {
 	pub is_declare: bool,
-	pub name: String,
+	pub name: UnifiedIdentifierBuf,
 	pub inner: Block,
 	pub position: Span,
 }

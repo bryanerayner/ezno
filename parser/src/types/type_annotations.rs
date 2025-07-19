@@ -71,7 +71,7 @@ pub enum TypeAnnotation {
 	KeyOf(Box<TypeAnnotation>, Span),
 	TypeOf(Box<VariableOrPropertyAccess>, Span),
 	Infer {
-		name: String,
+		name: UnifiedIdentifierBuf,
 		extends: Option<Box<TypeAnnotation>>,
 		position: Span,
 	},
