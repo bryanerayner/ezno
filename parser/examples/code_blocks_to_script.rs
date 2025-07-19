@@ -105,7 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		}
 	} else {
 		// Else bundle into one, bound in arrow functions to prevent namespace collision
-		let mut final_blocks: Vec<(HashSet<String>, String)> = Vec::new();
+		let mut final_blocks: Vec<(HashSet<UnifiedIdentifierBuf>, String)> = Vec::new();
 		for (header, mut code) in blocks {
 			// TODO clone
 			let module = match Module::from_string(code.clone(), Default::default()) {

@@ -21,5 +21,7 @@ ezno-parser = { path = "..", version = "0.1.7", features = [
   "self-rust-tokenize",
 ] }
 
+unified_identifier = { path = "../../unified_identifier" }
+
 [dev-dependencies]
 pretty_assertions = "1.3"

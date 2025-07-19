@@ -15,6 +15,7 @@ use parser::{
 	strings, ASTNode, Expression, ExpressionOrStatementPosition,
 };
 use source_map::{Nullable, SpanWithSource};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	context::Environment,
@@ -548,7 +549,7 @@ pub(super) fn synthesise_expression<T: crate::ReadFromFS>(
 										Publicity::Public
 									};
 									let property =
-										PropertyKey::UnifiedIdentifier(property.as_id());
+										PropertyKey::UnifiedIdentifier(property.clone());
 
 									let position = position.with_source(environment.get_source());
 									match crate::features::delete_operator(
@@ -1229,7 +1230,7 @@ fn call_function<T: crate::ReadFromFS>(
 	});
 
 	let comment = parser::Expression::VariableReference(
-		String::from_str("undefined").unwrap(),
+		UnifiedIdentifierBuf::from("undefined"),
 		source_map::BaseSpan::NULL,
 	);
 
@@ -1424,7 +1425,7 @@ pub(super) fn synthesise_object_literal<T: crate::ReadFromFS>(
 				}
 			}
 			ObjectLiteralMember::Shorthand(name, position) => {
-				let key = PropertyKey::String(Cow::Owned(name.clone()));
+				let key = PropertyKey::UnifiedIdentifier(name.clone());
 				let get_variable = environment.get_variable_handle_error(
 					name,
 					position.with_source(environment.get_source()),

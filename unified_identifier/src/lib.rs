@@ -53,6 +53,20 @@ impl UnifiedIdentifierBuf {
         self.original.len()
     }
 
+
+    pub fn upper_pascal_case(&self) -> String {
+        let mut result = String::new();
+        for word in &self.normalized {
+            let mut chars = word.chars();
+            if let Some(first) = chars.next() {
+                result.push(first.to_ascii_uppercase());
+                result.extend(chars.map(|c| c.to_ascii_lowercase()));
+            }
+        }
+        result
+    }
+
+
     /// Borrow as an *unsized* `UnifiedIdentifier` (zero‑cost)
     pub fn as_id(&self) -> UnifiedIdentifier<'_> { UnifiedIdentifier::from(self) }
 
@@ -103,7 +117,10 @@ impl self_rust_tokenize::SelfRustTokenize for UnifiedIdentifierBuf {
         &self,
         token_stream: &mut self_rust_tokenize::proc_macro2::TokenStream,
     ) {
-        self.original.append_to_token_stream(token_stream);
+        use self_rust_tokenize::quote;
+
+        let original = &self.original;
+        token_stream.extend(quote!(UnifiedIdentifierBuf::new(#original)));
     }
 }
 

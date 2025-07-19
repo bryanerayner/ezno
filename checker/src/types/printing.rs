@@ -407,6 +407,11 @@ pub fn print_type_into_buf<C: InformationChain>(
 					print_type_into_buf(on, buf, cycles, args, types, info, debug);
 					buf.push('[');
 					match under {
+						PropertyKey::UnifiedIdentifier(s) => {
+							buf.push('"');
+							buf.push_str(s.original());
+							buf.push('"');
+						},
 						PropertyKey::String(s) => {
 							buf.push('"');
 							buf.push_str(s);
@@ -429,6 +434,11 @@ pub fn print_type_into_buf<C: InformationChain>(
 						print_type_into_buf(on, buf, cycles, args, types, info, debug);
 						buf.push_str(" under ");
 						match under {
+							PropertyKey::UnifiedIdentifier(s) => {
+								buf.push('"');
+								buf.push_str(s.original());
+								buf.push('"');
+							},
 							PropertyKey::String(s) => {
 								buf.push('"');
 								buf.push_str(s);
@@ -939,6 +949,7 @@ pub(crate) fn print_property_key_into_buf<C: InformationChain>(
 	debug: bool,
 ) {
 	match key {
+		PropertyKey::UnifiedIdentifier(s) => buf.push_str(s.original()),
 		PropertyKey::String(s) => buf.push_str(s),
 		PropertyKey::Type(t) => {
 			buf.push('[');

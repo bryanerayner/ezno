@@ -2407,6 +2407,9 @@ pub fn type_is_subtype_of_property_mapped_key(
 							PropertyKey::Type(ty) => CovariantContribution::TypeId(ty),
 							PropertyKey::String(str) => {
 								CovariantContribution::String(str.into_owned())
+							},
+							PropertyKey::UnifiedIdentifier(str) => {
+								CovariantContribution::String(str.into_owned())
 							}
 						};
 						crate::utilities::notify!("Here {:?}", value);

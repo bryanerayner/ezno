@@ -13,7 +13,7 @@ use crate::{
 use derive_partial_eq_extras::PartialEqExtras;
 use get_field_by_type::GetFieldByType;
 use iterator_endiate::EndiateIteratorExt;
-use unified_identifier::UnifiedIdentifierBuf;
+use unified_identifier::{UnifiedIdentifier, UnifiedIdentifierBuf};
 
 #[apply(derive_ASTNode)]
 #[derive(Debug, PartialEqExtras, Clone, GetFieldByType)]
@@ -71,6 +71,30 @@ impl VariableIdentifier {
 			VariableIdentifier::Standard(s, _) => {
 				let r: &str = s.as_str();
 				let v = Some(r);
+
+				return v;
+			},
+			VariableIdentifier::Marker(_, _) => None,
+		}
+	}
+
+	#[must_use]
+	pub fn as_option_unified_identifier(&self) -> Option<UnifiedIdentifier<'_>> {
+		match self {
+			VariableIdentifier::Standard(s, _) => {
+				let v = Some(s.as_id());
+
+				return v;
+			},
+			VariableIdentifier::Marker(_, _) => None,
+		}
+	}
+
+	#[must_use]
+	pub fn as_option_unified_identifier_buf(&self) -> Option<UnifiedIdentifierBuf> {
+		match self {
+			VariableIdentifier::Standard(s, _) => {
+				let v = Some(s.clone());
 
 				return v;
 			},

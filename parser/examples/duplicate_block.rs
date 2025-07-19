@@ -3,20 +3,21 @@ use ezno_parser::{
 	visiting::{Chain, ImmutableVariableOrProperty, VisitOptions, Visitor, Visitors},
 	ASTNode, Declaration, Expression, Module, StatementOrDeclaration, VariableField,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 use std::collections::HashSet;
 
 struct Offsets {
 	pub offsets: Vec<u32>,
 	/// TODO use &str references
-	pub top_level_variables: HashSet<String>,
+	pub top_level_variables: HashSet<UnifiedIdentifierBuf>,
 	#[allow(unused, reason = "Want to do this in the future")]
-	pub top_level_types: HashSet<String>,
+	pub top_level_types: HashSet<UnifiedIdentifierBuf>,
 }
 
 /// TODO this could use visting right?
 /// TODO abstract to library
 /// TODO do for funtions and types
-fn get_top_level_identifiers(m: &Module) -> (HashSet<String>, HashSet<String>) {
+fn get_top_level_identifiers(m: &Module) -> (HashSet<UnifiedIdentifierBuf>, HashSet<UnifiedIdentifierBuf>) {
 	let (mut variables, types): (HashSet<_>, HashSet<_>) = Default::default();
 	for item in &m.items {
 		match item {
@@ -26,7 +27,7 @@ fn get_top_level_identifiers(m: &Module) -> (HashSet<String>, HashSet<String>) {
 						for declaration in declarations {
 							if let VariableField::Name(identifier) = declaration.name.get_ast_ref()
 							{
-								variables.insert(identifier.as_option_str().unwrap().to_owned());
+								variables.insert(identifier.as_option_unified_identifier_buf().unwrap());
 							}
 						}
 					}
@@ -34,14 +35,14 @@ fn get_top_level_identifiers(m: &Module) -> (HashSet<String>, HashSet<String>) {
 						for declaration in declarations {
 							if let VariableField::Name(identifier) = declaration.name.get_ast_ref()
 							{
-								variables.insert(identifier.as_option_str().unwrap().to_owned());
+								variables.insert(identifier.as_option_unified_identifier_buf().unwrap());
 							}
 						}
 					}
 				}
 			}
 			StatementOrDeclaration::Declaration(Declaration::Function(function)) => {
-				variables.insert(function.on.name.identifier.as_option_str().unwrap().to_owned());
+				variables.insert(function.on.name.identifier.as_option_unified_identifier_buf().unwrap());
 			}
 			_ => {}
 		}

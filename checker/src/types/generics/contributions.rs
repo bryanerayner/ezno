@@ -1,4 +1,5 @@
 use source_map::{Nullable, SpanWithSource};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	subtyping::{type_is_subtype_with_generics, State, SubTypeResult},
@@ -20,6 +21,7 @@ pub enum CovariantContribution {
 	TypeId(TypeId),
 	/// This can be set by property keys in mapped types. Also `[x]` on a constant string
 	String(String),
+	UnifiedIdentifier(UnifiedIdentifierBuf),
 	SliceOf(Box<Self>, (u32, u32)),
 	CaseInsensitive(Box<Self>),
 	/// This can be from `.length` on a constant string
@@ -30,6 +32,9 @@ impl CovariantContribution {
 	pub(crate) fn into_type(self, types: &mut TypeStore) -> TypeId {
 		match self {
 			CovariantContribution::TypeId(ty) => ty,
+			CovariantContribution::UnifiedIdentifier(t) => {
+				types.new_constant_type(crate::Constant::String(t.original_string().clone()))
+			}
 			CovariantContribution::SliceOf(inner, (start, end)) => {
 				let inner = inner.into_type(types);
 				if let crate::Type::Constant(crate::types::Constant::String(s)) =
@@ -65,6 +70,7 @@ impl CovariantContribution {
 	pub(crate) fn into_property_key(self) -> PropertyKey<'static> {
 		match self {
 			CovariantContribution::TypeId(ty) => PropertyKey::Type(ty),
+			CovariantContribution::UnifiedIdentifier(ty) => PropertyKey::UnifiedIdentifier(ty),
 			CovariantContribution::SliceOf(inner, (start, end)) => {
 				todo!("{:?}", (inner, (start, end)));
 			}
@@ -90,6 +96,7 @@ impl From<TypeId> for CovariantContribution {
 impl From<PropertyKey<'static>> for CovariantContribution {
 	fn from(value: PropertyKey<'static>) -> Self {
 		match value {
+			PropertyKey::UnifiedIdentifier(s) => CovariantContribution::UnifiedIdentifier(s),
 			PropertyKey::String(s) => CovariantContribution::String(s.to_string()),
 			PropertyKey::Type(value) => CovariantContribution::TypeId(value),
 		}

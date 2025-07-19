@@ -1,4 +1,5 @@
 use ezno_ast_generator::stmt;
+use unified_identifier::UnifiedIdentifierBuf;
 
 fn main() {
 	let content = "World!";

@@ -271,6 +271,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "self-rust-tokenize",
+ "unified_identifier",
 ]
 
 [[package]]

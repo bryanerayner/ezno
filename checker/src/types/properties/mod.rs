@@ -5,7 +5,7 @@ pub mod list;
 pub use access::*;
 pub use assignment::set_property;
 pub use list::*;
-use unified_identifier::UnifiedIdentifierBuf;
+use unified_identifier::{UnifiedIdentifierBuf, UnifiedIdentifier};
 
 use super::{Type, TypeStore};
 use crate::{
@@ -42,7 +42,7 @@ pub enum Publicity {
 /// Implements basic definition equality, not type equality
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PropertyKey<'a> {
-	UnifiedIdentifier(UnifiedIdentifier<'a>),
+	UnifiedIdentifier(UnifiedIdentifierBuf),
 	String(Cow<'a, str>),
 	/// Use [`PropertyKey::from_type`] for canonicalisation (generating [`PropertyKey::String`] when possible)
 	Type(TypeId),

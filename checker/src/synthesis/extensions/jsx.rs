@@ -51,7 +51,7 @@ pub(crate) fn synthesise_jsx_element<T: crate::ReadFromFS>(
 	let _tag_name = element.tag_name.as_str();
 
 	let tag_name_as_cst_ty =
-		checking_data.types.new_constant_type(Constant::String(element.tag_name.clone()));
+		checking_data.types.new_constant_type(Constant::String(element.tag_name.upper_pascal_case().clone()));
 
 	let mut attributes_object = ObjectBuilder::new(
 		None,
@@ -514,5 +514,5 @@ fn synthesise_attribute<T: crate::ReadFromFS>(
 		}
 	};
 
-	(PropertyKey::String(Cow::Owned(key.clone())), value)
+	(PropertyKey::UnifiedIdentifier(key.clone()), value)
 }
