@@ -911,6 +911,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 				} => Diagnostic::Position {
 					reason: match property {
 						PropertyKeyRepresentation::Type(ty) => format!("Cannot write to property of type {ty}"),
+						PropertyKeyRepresentation::UnifiedIdentifierKey(ty) => format!("Cannot write to property {ty}"),
 						PropertyKeyRepresentation::StringKey(property) => format!("Cannot write to property '{property}'")
 					},
 					position,
@@ -934,6 +935,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 				} => Diagnostic::Position {
 					reason: match property {
 						PropertyKeyRepresentation::Type(ty) => format!("Cannot write to property of type {ty} as it is a getter"),
+						PropertyKeyRepresentation::UnifiedIdentifierKey(ty) => format!("Cannot write to property of type {ty} as it is a getter"),
 						PropertyKeyRepresentation::StringKey(property) => format!("Cannot write to property '{property}' as it is a getter")
 					},
 					position,
@@ -945,6 +947,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 				} => Diagnostic::Position {
 					reason: match property {
 						PropertyKeyRepresentation::Type(ty) => format!("Cannot write to non-existent property of type {ty}"),
+						PropertyKeyRepresentation::UnifiedIdentifierKey(ty) => format!("Cannot write to non-existent property of type {ty}"),
 						PropertyKeyRepresentation::StringKey(property) => format!("Cannot write to non-existent property '{property}'")
 					},
 					position,
@@ -1283,6 +1286,7 @@ fn function_calling_error_diagnostic(
 			Diagnostic::Position {
 				reason: match property {
 					PropertyKeyRepresentation::Type(ty) => format!("Property of type '{ty}' not configurable"),
+					PropertyKeyRepresentation::UnifiedIdentifierKey(property) => format!("Property '{property}' not configurable"),
 					PropertyKeyRepresentation::StringKey(property) => format!("Property '{property}' not configurable"),
 				},
 				position: call_site,

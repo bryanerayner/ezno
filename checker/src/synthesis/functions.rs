@@ -7,6 +7,7 @@ use parser::{
 	ASTNode, Block, FunctionBased, Span, SpreadDestructuringField, TypeAnnotation, TypeParameter,
 	VariableField, VariableIdentifier, WithComment,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	context::{Context, ContextType, Scope, VariableRegisterArguments},
@@ -256,7 +257,7 @@ pub(super) fn synthesise_type_annotation_function_parameters<T: crate::ReadFromF
 				.name
 				.as_ref()
 				.map(WithComment::get_ast_ref)
-				.map_or_else(|| format!("parameter{idx}"), get_parameter_name);
+				.map_or_else(|| UnifiedIdentifierBuf::new( format!("parameter{idx}")), get_parameter_name);
 
 			let ty = checking_data.types.new_function_parameter(parameter_constraint, id, &name);
 
@@ -497,13 +498,13 @@ fn synthesise_function_parameters<
 }
 
 /// For parameter printing
-pub(super) fn variable_field_to_string(param: &VariableField) -> String {
+pub(super) fn variable_field_to_string(param: &VariableField) -> UnifiedIdentifierBuf {
 	match param {
 		VariableField::Name(name) => {
 			if let VariableIdentifier::Standard(name, ..) = name {
 				name.clone()
 			} else {
-				String::new()
+				UnifiedIdentifierBuf::new(String::new())
 			}
 		}
 		VariableField::Array { members, spread, .. } => {
@@ -527,7 +528,7 @@ pub(super) fn variable_field_to_string(param: &VariableField) -> String {
 				buf.push_str(&variable_field_to_string(name));
 			}
 			buf.push(']');
-			buf
+			UnifiedIdentifierBuf::from(buf)
 		}
 		VariableField::Object { members, spread, .. } => {
 			let mut buf = String::from("{");
@@ -573,23 +574,23 @@ pub(super) fn variable_field_to_string(param: &VariableField) -> String {
 			}
 			buf.push_str(" }");
 
-			buf
+			UnifiedIdentifierBuf::from(buf)
 		}
 	}
 }
 
 // TODO don't print values
-fn get_parameter_name(parameter: &parser::VariableField) -> String {
+fn get_parameter_name(parameter: &parser::VariableField) -> UnifiedIdentifierBuf {
 	match parameter {
 		VariableField::Name(name) => match name {
 			VariableIdentifier::Standard(ref name, _) => name.to_owned(),
-			VariableIdentifier::Marker(_, _) => String::new(),
+			VariableIdentifier::Marker(_, _) => UnifiedIdentifierBuf::new(String::new()),
 		},
 		VariableField::Array { members: _, spread: _, position: _ } => {
-			"todo: VariableField::Array".to_owned()
+			UnifiedIdentifierBuf::new("todo: VariableField::Array".to_owned())
 		}
 		VariableField::Object { members: _, spread: _, position: _ } => {
-			"todo: VariableField::Object".to_owned()
+			UnifiedIdentifierBuf::new("todo: VariableField::Object".to_owned())
 		}
 	}
 }
