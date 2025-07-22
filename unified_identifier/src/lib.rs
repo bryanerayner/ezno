@@ -30,6 +30,20 @@ pub struct UnifiedIdentifierBuf {
     canonical:  OnceCell<String>,   // cached canonical name (Pascal/camel)
 }
 
+impl checker_utility_types::BinarySerializable for UnifiedIdentifierBuf {
+    
+	fn serialize(self, buf: &mut Vec<u8>) {
+		// TODO VLQ?
+		buf.push(u8::try_from(self.len()).expect("serializing a large string"));
+		buf.extend_from_slice(self.as_bytes());
+	}
+
+	fn deserialize<I: Iterator<Item = u8>>(iter: &mut I, _source: SourceId) -> Self {
+		let len = iter.next().unwrap();
+		iter.by_ref().take(len as usize).map(|v| v as char).collect::<String>()
+	}
+}
+
 impl Borrow<str> for UnifiedIdentifierBuf {
     fn borrow(&self) -> &str {
         &self.original

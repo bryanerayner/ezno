@@ -17,7 +17,12 @@ source-map = { version = "0.15", features = [
   "self-rust-tokenize",
 ] }
 self-rust-tokenize = { version = "0.3", optional = true }
+checker_utility_types = { path = "../checker_utility_types" }
 
+source-map = { version = "0.15", features = [
+  "serde-serialize",
+  "self-rust-tokenize",
+] }
 serde = { version = "1.0", features = ["derive"], optional = true }
 once_cell = "1.21.3"
 
