@@ -53,6 +53,10 @@ impl UnifiedIdentifierBuf {
         self.original.len()
     }
 
+    pub fn into_owned(&self) -> Self {
+        UnifiedIdentifierBuf::new(self)
+    }
+
 
     pub fn upper_pascal_case(&self) -> String {
         let mut result = String::new();
@@ -82,6 +86,12 @@ impl UnifiedIdentifierBuf {
 
     /// True string comparison *ignoring* style
     fn squash(&self) -> String { self.normalized.join("") }
+}
+
+impl<'a> Into<String> for &'a UnifiedIdentifierBuf {
+    fn into(self) -> String {
+        self.original.clone()
+    }
 }
 
 impl PartialEq<str> for UnifiedIdentifierBuf {
@@ -175,6 +185,9 @@ impl<'a> UnifiedIdentifier<'a> {
     }
 
     pub fn to_owned(&self) -> UnifiedIdentifierBuf {
+        UnifiedIdentifierBuf::new(self.original)
+    }
+    pub fn into_owned(&self) -> UnifiedIdentifierBuf {
         UnifiedIdentifierBuf::new(self.original)
     }
 

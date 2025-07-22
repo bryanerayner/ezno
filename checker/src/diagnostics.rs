@@ -11,6 +11,7 @@ use crate::{
 	},
 };
 use source_map::{SourceId, SpanWithSource};
+use unified_identifier::UnifiedIdentifierBuf;
 use std::{
 	fmt::{self, Debug, Display},
 	iter,
@@ -184,6 +185,7 @@ pub struct TypeStringRepresentation(String);
 pub enum PropertyKeyRepresentation {
 	Type(String),
 	StringKey(String),
+	UnifiedIdentifierKey(UnifiedIdentifierBuf),
 }
 
 impl PropertyKeyRepresentation {
@@ -194,6 +196,7 @@ impl PropertyKeyRepresentation {
 	) -> PropertyKeyRepresentation {
 		match under.clone() {
 			PropertyKey::String(s) => PropertyKeyRepresentation::StringKey(s.to_string()),
+			PropertyKey::UnifiedIdentifier(s) => PropertyKeyRepresentation::UnifiedIdentifierKey(s),
 			PropertyKey::Type(t) => {
 				PropertyKeyRepresentation::Type(print_type(t, types, environment, false))
 			}
@@ -560,6 +563,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 				Diagnostic::PositionWithAdditionalLabels {
 					reason: match property {
 						PropertyKeyRepresentation::Type(ty) => format!("No property of type {ty} on {on}"),
+						PropertyKeyRepresentation::UnifiedIdentifierKey(ty) => format!("No property of type {ty} on {on}"),
 						PropertyKeyRepresentation::StringKey(property) => format!("No property '{property}' on {on}"),
 					},
 					position,

@@ -3,6 +3,7 @@ use parser::{
 	ASTNode, Declaration, Decorated, Expression, StatementOrDeclaration,
 };
 use source_map::SourceId;
+use unified_identifier::UnifiedIdentifierBuf;
 
 use super::classes::synthesise_class_declaration;
 
@@ -65,7 +66,7 @@ pub(crate) fn get_internal_function_effect_from_decorators(
 ) -> Option<InternalFunctionEffect> {
 	decorators.iter().find_map(|decorator| {
 		if decorator.name.len() == 1 {
-			let decorator_name = decorator.name.first().map(String::as_str)?;
+			let decorator_name = decorator.name.first().map(UnifiedIdentifierBuf::as_str)?;
 			if matches!(decorator_name, "Constant" | "InputOutput") {
 				let (identifier, may_throw) =
 					if let Some(arguments) = decorator.arguments.as_ref() {
@@ -106,9 +107,9 @@ pub(crate) fn get_internal_function_effect_from_decorators(
 	})
 }
 
-pub(crate) fn _decorators_to_context(decorators: &[parser::Decorator]) -> Option<String> {
+pub(crate) fn _decorators_to_context(decorators: &[parser::Decorator]) -> Option<UnifiedIdentifierBuf> {
 	decorators.iter().find_map(|dec| {
-		matches!(dec.name.first().map(String::as_str), Some("Server" | "Client"))
+		matches!(dec.name.first().map(UnifiedIdentifierBuf::as_str), Some("Server" | "Client"))
 			.then(|| dec.name.first().unwrap().to_owned())
 	})
 }

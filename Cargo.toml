@@ -6,7 +6,7 @@ members = [
   "unified_identifier",
   "checker",
   "checker/binary-serialize-derive",
-  "checker/specification",
+  "checker/specification", "checker_utility_types",
   # "lsp/server",
 ]
 

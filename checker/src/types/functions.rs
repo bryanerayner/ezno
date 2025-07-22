@@ -2,6 +2,7 @@
 use std::collections::HashMap;
 
 use source_map::{BaseSpan, Nullable, SpanWithSource};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use super::calling::{Callable, CallingContext, CallingInput};
 use crate::{
@@ -230,7 +231,7 @@ impl FunctionBehavior {
 /// Optionality is indicated by what vector it is in [`SynthesisedParameters`]
 #[derive(Clone, Debug, binary_serialize_derive::BinarySerializable)]
 pub struct SynthesisedParameter {
-	pub name: String,
+	pub name: UnifiedIdentifierBuf,
 	/// This is also for parameters with default (which is handled behind the scenes)
 	pub is_optional: bool,
 	/// This is the generic parameter type, not the restriction
@@ -241,7 +242,7 @@ pub struct SynthesisedParameter {
 /// **Note that the [Type] here is not array like**
 #[derive(Clone, Debug, binary_serialize_derive::BinarySerializable)]
 pub struct SynthesisedRestParameter {
-	pub name: String,
+	pub name: UnifiedIdentifierBuf,
 	/// This is the item type, aka the `T` of `Array<T>`
 	pub item_type: TypeId,
 	/// This is the generic type (to substitute into)

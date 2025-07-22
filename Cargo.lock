@@ -93,6 +93,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "checker_utility_types"
+version = "0.1.0"
+dependencies = [
+ "source-map",
+]
+
+[[package]]
 name = "codespan-reporting"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -279,6 +286,7 @@ name = "ezno-checker"
 version = "0.0.18"
 dependencies = [
  "binary-serialize-derive",
+ "checker_utility_types",
  "derive-debug-extras",
  "derive-enum-from-into",
  "either",

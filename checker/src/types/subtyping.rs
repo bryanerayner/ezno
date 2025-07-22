@@ -1769,6 +1769,7 @@ where
 					key
 				}
 			}
+			PropertyKey::UnifiedIdentifier(_) => key,
 			PropertyKey::String(_) => key,
 		};
 
@@ -2409,7 +2410,7 @@ pub fn type_is_subtype_of_property_mapped_key(
 								CovariantContribution::String(str.into_owned())
 							},
 							PropertyKey::UnifiedIdentifier(str) => {
-								CovariantContribution::String(str.into_owned())
+								CovariantContribution::UnifiedIdentifier(str.into_owned())
 							}
 						};
 						crate::utilities::notify!("Here {:?}", value);
