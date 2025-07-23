@@ -33,6 +33,7 @@ use self::environment::{DynamicBoundaryKind, FunctionScope};
 pub use environment::Scope;
 pub(crate) use environment::Syntax;
 pub use information::{InformationChain, LocalInformation};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use std::{
 	collections::{
@@ -143,11 +144,11 @@ impl<'a> From<&'a Environment<'a>> for GeneralContext<'a> {
 }
 
 pub struct Names {
-	pub(crate) variables: HashMap<String, VariableOrImport>,
-	pub(crate) named_types: HashMap<String, TypeId>,
+        pub(crate) variables: HashMap<UnifiedIdentifierBuf, VariableOrImport>,
+        pub(crate) named_types: HashMap<UnifiedIdentifierBuf, TypeId>,
 
 	/// For debugging only
-	pub(crate) variable_names: HashMap<VariableId, String>,
+        pub(crate) variable_names: HashMap<VariableId, UnifiedIdentifierBuf>,
 }
 
 #[derive(Debug)]
@@ -156,11 +157,11 @@ pub struct Context<T: ContextType> {
 	pub context_id: ContextId,
 	pub(crate) context_type: T,
 
-	pub(crate) variables: HashMap<String, VariableOrImport>,
-	pub(crate) named_types: HashMap<String, TypeId>,
+        pub(crate) variables: HashMap<UnifiedIdentifierBuf, VariableOrImport>,
+        pub(crate) named_types: HashMap<UnifiedIdentifierBuf, TypeId>,
 
 	/// For debugging AND noting what contexts contain what variables
-	pub(crate) variable_names: HashMap<VariableId, String>,
+        pub(crate) variable_names: HashMap<VariableId, UnifiedIdentifierBuf>,
 
 	/// TODO unsure if needed
 	pub(crate) deferred_function_constraints: HashMap<FunctionId, (FunctionType, SpanWithSource)>,
@@ -219,7 +220,7 @@ impl<T: ContextType> Context<T> {
 			allow_reregistration,
 		};
 
-		let entry = self.variables.entry(name.to_owned());
+                let entry = self.variables.entry(UnifiedIdentifierBuf::new(name));
 		let existing_that_can_be_rewritten = match entry {
 			Entry::Occupied(e) => match e.get() {
 				VariableOrImport::Variable { allow_reregistration, .. } => !*allow_reregistration,
@@ -227,8 +228,8 @@ impl<T: ContextType> Context<T> {
 				| VariableOrImport::ConstantImport { .. } => true,
 			},
 			Entry::Vacant(vacant) => {
-				vacant.insert(variable);
-				self.variable_names.insert(id, name.to_owned());
+                                vacant.insert(variable);
+                                self.variable_names.insert(id, UnifiedIdentifierBuf::new(name));
 				false
 			}
 		};
@@ -240,11 +241,11 @@ impl<T: ContextType> Context<T> {
 			}
 
 			if record_event {
-				self.info.events.push(crate::events::Event::RegisterVariable {
-					name: name.to_owned(),
-					position: declared_at,
-					initial_value,
-				});
+                                self.info.events.push(crate::events::Event::RegisterVariable {
+                                        name: name.to_string(),
+                                        position: declared_at,
+                                        initial_value,
+                                });
 			}
 		}
 
@@ -278,10 +279,10 @@ impl<T: ContextType> Context<T> {
 		let register_variable = self.register_variable(name, declared_at, argument, record_event);
 
 		if let Err(CannotRedeclareVariable { name }) = register_variable {
-			diagnostics_container.add_error(TypeCheckError::CannotRedeclareVariable {
-				name: name.to_owned(),
-				position: declared_at,
-			});
+                                diagnostics_container.add_error(TypeCheckError::CannotRedeclareVariable {
+                                name: name.to_string(),
+                                position: declared_at,
+                        });
 		}
 	}
 
@@ -757,17 +758,17 @@ impl<T: ContextType> Context<T> {
 		default_type: Option<TypeId>,
 		types: &mut TypeStore,
 	) -> crate::types::generics::GenericTypeParameter {
-		let ty = Type::RootPolyType(PolyNature::FunctionGeneric {
-			name: name.to_owned(),
+                let ty = Type::RootPolyType(PolyNature::FunctionGeneric {
+                        name: UnifiedIdentifierBuf::new(name),
 			// TODO this is fixed!!
 			extends: constraint_type.unwrap_or(TypeId::ANY_TYPE),
 		});
 
 		let ty = types.register_type(ty);
-		self.named_types.insert(name.to_owned(), ty);
+                self.named_types.insert(UnifiedIdentifierBuf::new(name), ty);
 
 		crate::types::generics::GenericTypeParameter {
-			name: name.to_owned(),
+                        name: UnifiedIdentifierBuf::new(name),
 			type_id: ty,
 			default: default_type,
 		}
@@ -811,7 +812,7 @@ impl<T: ContextType> Context<T> {
 		declared_at: SpanWithSource,
 		variable_ty: TypeId,
 		types: &mut TypeStore,
-		context: Option<String>,
+                context: Option<UnifiedIdentifierBuf>,
 	) -> Result<TypeId, CannotRedeclareVariable<'a>> {
 		let id = crate::VariableId(declared_at.source, declared_at.start);
 
@@ -822,7 +823,7 @@ impl<T: ContextType> Context<T> {
 			context,
 			allow_reregistration: false,
 		};
-		let entry = self.variables.entry(name.to_owned());
+                let entry = self.variables.entry(UnifiedIdentifierBuf::new(name));
 		if let Entry::Vacant(vacant) = entry {
 			vacant.insert(variable);
 
@@ -838,7 +839,7 @@ impl<T: ContextType> Context<T> {
 			self.info.variable_current_value.insert(id, ty);
 			Ok(ty)
 		} else {
-			Err(CannotRedeclareVariable { name })
+                        Err(CannotRedeclareVariable { name })
 		}
 	}
 

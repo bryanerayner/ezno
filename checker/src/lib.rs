@@ -16,10 +16,11 @@ pub mod utilities;
 pub mod synthesis;
 
 use std::{
-	collections::{HashMap, HashSet},
-	path::{Path, PathBuf},
-	time::Duration,
+        collections::{HashMap, HashSet},
+        path::{Path, PathBuf},
+        time::Duration,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 use context::{
 	information::{LocalInformation, ModuleInformation},
@@ -604,8 +605,8 @@ const CACHE_MARKER: &[u8] = b"ezno-cache-file";
 
 #[derive(binary_serialize_derive::BinarySerializable)]
 pub(crate) struct Cache {
-	pub(crate) variables: HashMap<String, features::variables::VariableOrImport>,
-	pub(crate) named_types: HashMap<String, TypeId>,
+        pub(crate) variables: HashMap<UnifiedIdentifierBuf, features::variables::VariableOrImport>,
+        pub(crate) named_types: HashMap<UnifiedIdentifierBuf, TypeId>,
 	pub(crate) info: LocalInformation,
 	pub(crate) types: TypeStore,
 	// /// Retains position information

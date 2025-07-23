@@ -1,6 +1,7 @@
 use std::{borrow::Cow, collections::hash_map::Entry};
 
 use source_map::{Nullable, SourceId, SpanWithSource};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	context::{
@@ -57,14 +58,16 @@ pub fn register_expression_function<T: crate::ReadFromFS, A: crate::ASTImplement
 	is_async: bool,
 	is_generator: bool,
 	location: ContextLocation,
-	name: Option<String>,
+        name: Option<UnifiedIdentifierBuf>,
 	function: &impl SynthesisableFunction<A>,
 	environment: &mut Environment,
 	checking_data: &mut CheckingData<T, A>,
 ) -> TypeId {
-	let name = if let Some(name) = name {
-		checking_data.types.new_constant_type(Constant::String(name))
-	} else {
+        let name = if let Some(name) = name {
+                checking_data
+                        .types
+                        .new_constant_type(Constant::String(name.original().to_string()))
+        } else {
 		extract_name(expected, &checking_data.types, environment)
 	};
 	let function_type = synthesise_function(
@@ -89,12 +92,14 @@ pub fn synthesise_hoisted_statement_function<T: crate::ReadFromFS, A: crate::AST
 	is_async: bool,
 	is_generator: bool,
 	location: ContextLocation,
-	name: String,
+        name: UnifiedIdentifierBuf,
 	function: &impl SynthesisableFunction<A>,
 	environment: &mut Environment,
 	checking_data: &mut CheckingData<T, A>,
 ) -> TypeId {
-	let name = checking_data.types.new_constant_type(Constant::String(name));
+        let name = checking_data
+                .types
+                .new_constant_type(Constant::String(name.original().to_string()));
 	let behavior = FunctionRegisterBehavior::StatementFunction {
 		variable_id,
 		is_async,
@@ -131,13 +136,15 @@ pub fn synthesise_declare_statement_function<T: crate::ReadFromFS, A: crate::AST
 	is_async: bool,
 	is_generator: bool,
 	location: ContextLocation,
-	name: String,
+        name: UnifiedIdentifierBuf,
 	internal_marker: Option<InternalFunctionEffect>,
 	function: &impl SynthesisableFunction<A>,
 	environment: &mut Environment,
 	checking_data: &mut CheckingData<T, A>,
 ) -> TypeId {
-	let name = checking_data.types.new_constant_type(Constant::String(name));
+        let name = checking_data
+                .types
+                .new_constant_type(Constant::String(name.original().to_string()));
 	let behavior = FunctionRegisterBehavior::StatementFunction {
 		variable_id,
 		is_async,
