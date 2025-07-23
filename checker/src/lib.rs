@@ -22,9 +22,10 @@ use std::{
 };
 
 use context::{
-	information::{LocalInformation, ModuleInformation},
-	Names,
+        information::{LocalInformation, ModuleInformation},
+        Names,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 use diagnostics::{TypeCheckError, TypeCheckWarning};
 pub(crate) use utilities::{map::Map, range_map::RangeMap};
@@ -604,8 +605,8 @@ const CACHE_MARKER: &[u8] = b"ezno-cache-file";
 
 #[derive(binary_serialize_derive::BinarySerializable)]
 pub(crate) struct Cache {
-	pub(crate) variables: HashMap<String, features::variables::VariableOrImport>,
-	pub(crate) named_types: HashMap<String, TypeId>,
+        pub(crate) variables: HashMap<UnifiedIdentifierBuf, features::variables::VariableOrImport>,
+        pub(crate) named_types: HashMap<UnifiedIdentifierBuf, TypeId>,
 	pub(crate) info: LocalInformation,
 	pub(crate) types: TypeStore,
 	// /// Retains position information

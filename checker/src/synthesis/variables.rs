@@ -340,11 +340,11 @@ fn assign_initial_to_fields<T: crate::ReadFromFS>(
 				if let crate::Scope::Module { ref mut exported, .. } =
 					environment.context_type.scope
 				{
-					let name = match name {
-						VariableIdentifier::Standard(name, _) => name,
-						VariableIdentifier::Marker(_, _) => UnifiedIdentifierBuf::new("?".to_string()),
-					};
-					exported.named.insert(name, (id, mutability));
+                                        let name = match name {
+                                                VariableIdentifier::Standard(name, _) => name.clone(),
+                                                VariableIdentifier::Marker(_, _) => UnifiedIdentifierBuf::new("?".to_string()),
+                                        };
+                                        exported.named.insert(name, (id, mutability));
 				} else {
 					checking_data.diagnostics_container.add_error(
 						TypeCheckError::NonTopLevelExport(

@@ -7,8 +7,9 @@ use parser::{
 		DeclareVariableDeclaration, ExportDeclaration,
 	},
 	ASTNode, Declaration, Decorated, ExpressionOrStatementPosition, Statement,
-	StatementOrDeclaration, StatementPosition, VariableIdentifier,
+        StatementOrDeclaration, StatementPosition, VariableIdentifier,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	context::{environment::DeclareInterfaceResult, Environment, VariableRegisterArguments},
@@ -83,10 +84,12 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 							if let crate::Scope::Module { ref mut exported, .. } =
 								environment.context_type.scope
 							{
-								exported.named_types.insert(
-									interface.name.as_option_str().unwrap_or_default().to_owned(),
-									ty,
-								);
+                                                                exported
+                                                                        .named_types
+                                                                        .insert(
+                                                                                UnifiedIdentifierBuf::new(interface.name.as_option_str().unwrap_or_default().to_owned()),
+                                                                                ty,
+                                                                        );
 							}
 						}
 					} else {
@@ -122,10 +125,12 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 							if let crate::Scope::Module { ref mut exported, .. } =
 								environment.context_type.scope
 							{
-								exported.named_types.insert(
-									class.name.as_option_str().unwrap_or_default().to_owned(),
-									ty,
-								);
+                                                                exported
+                                                                        .named_types
+                                                                        .insert(
+                                                                                UnifiedIdentifierBuf::new(class.name.as_option_str().unwrap_or_default().to_owned()),
+                                                                                ty,
+                                                                        );
 							}
 						}
 					} else {
@@ -162,10 +167,12 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 							if let crate::Scope::Module { ref mut exported, .. } =
 								environment.context_type.scope
 							{
-								exported.named_types.insert(
-									alias.name.as_option_str().unwrap_or_default().to_owned(),
-									ty,
-								);
+                                                                exported
+                                                                        .named_types
+                                                                        .insert(
+                                                                                UnifiedIdentifierBuf::new(alias.name.as_option_str().unwrap_or_default().to_owned()),
+                                                                                ty,
+                                                                        );
 							}
 						}
 					} else {
@@ -200,14 +207,14 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 							}
 						},
 					};
-					let default_import = import.default.as_ref().and_then(|default_identifier| {
-						match default_identifier {
-							VariableIdentifier::Standard(name, position) => {
-								Some((name.as_str(), *position))
-							}
-							VariableIdentifier::Marker(..) => None,
-						}
-					});
+                                        let default_import = import.default.as_ref().and_then(|default_identifier| {
+                                                match default_identifier {
+                                                        VariableIdentifier::Standard(name, position) => {
+                                                                Some((name.clone(), *position))
+                                                        }
+                                                        VariableIdentifier::Marker(..) => None,
+                                                }
+                                        });
 					import_items(
 						environment,
 						import.from.get_path().unwrap(),
@@ -388,7 +395,10 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 						checking_data,
 					);
 
-					let name = StatementPosition::as_option_str(&class.name).unwrap_or_default();
+                                        let name = UnifiedIdentifierBuf::new(
+                                                StatementPosition::as_option_str(&class.name)
+                                                        .unwrap_or_default(),
+                                        );
 					let argument = VariableRegisterArguments {
 						// TODO functions are constant references
 						constant: true,
@@ -397,10 +407,10 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 						allow_reregistration: false,
 					};
 
-					environment.register_variable_handle_error(
-						name,
-						argument,
-						name_position,
+                                        environment.register_variable_handle_error(
+                                                &name,
+                                                argument,
+                                                name_position,
 						&mut checking_data.diagnostics_container,
 						&mut checking_data.local_type_mappings,
 						checking_data.options.record_all_assignments_and_reads,
@@ -583,7 +593,7 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 
 							// Read declarations until
 							while let Some(overload_declaration) = second_items.next_if(|t| {
-								matches!( t, StatementOrDeclaration::Declaration( Declaration::Function(Decorated { on: func, .. })) if func.name.as_option_str().is_some_and(|n| n == name) && !func.has_body())
+                                                                matches!( t, StatementOrDeclaration::Declaration( Declaration::Function(Decorated { on: func, .. })) if func.name.as_option_str().is_some_and(|n| n == name.as_str()) && !func.has_body())
 							}) {
 								let parser::StatementOrDeclaration::Declaration(
 									Declaration::Function(Decorated { on: function, .. }),
@@ -600,13 +610,13 @@ pub(crate) fn hoist_statements<T: crate::ReadFromFS>(
 							}
 
 							let upcoming = second_items.peek().and_then(|next| {
-								matches!(
-									next,
-									StatementOrDeclaration::Declaration(Declaration::Function(Decorated { on: func, .. }))
-									if
-										func.name.as_option_str().is_some_and(|n| n == name)
-										&& func.has_body()
-								)
+                                                                matches!(
+                                                                        next,
+                                                                        StatementOrDeclaration::Declaration(Declaration::Function(Decorated { on: func, .. }))
+                                                                        if
+                                                                                func.name.as_option_str().is_some_and(|n| n == name.as_str())
+                                                                                && func.has_body()
+                                                                )
 								.then_some(next)
 							});
 

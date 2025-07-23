@@ -344,7 +344,7 @@ pub(crate) fn type_is_subtype_with_generics(
 						information,
 						types,
 					),
-					CovariantContribution::String(string) => {
+                                        CovariantContribution::String(string) | CovariantContribution::UnifiedIdentifier(ref string) => {
 						let contributions =
 							state.contributions.as_mut().map(|n| &mut n.staging_contravariant);
 						let matches = slice_matches_type(
@@ -565,7 +565,7 @@ pub(crate) fn type_is_subtype_with_generics(
 						information,
 						types,
 					),
-					CovariantContribution::String(left_string) => {
+                                        CovariantContribution::String(left_string) | CovariantContribution::UnifiedIdentifier(left_string) => {
 						if let Type::Constant(Constant::String(right_string)) = subtype {
 							if &left_string == right_string {
 								SubTypeResult::IsSubType

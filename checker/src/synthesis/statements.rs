@@ -16,8 +16,9 @@ use crate::{
 
 use parser::{expressions::MultipleExpression, ASTNode, BlockOrSingleStatement, Statement};
 use std::collections::HashMap;
+use unified_identifier::UnifiedIdentifierBuf;
 
-pub type ExportedItems = HashMap<String, crate::features::variables::VariableOrImport>;
+pub type ExportedItems = HashMap<UnifiedIdentifierBuf, crate::features::variables::VariableOrImport>;
 pub type ReturnResult = Option<TypeId>;
 
 pub struct StatementInformation {

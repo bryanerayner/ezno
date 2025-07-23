@@ -12,6 +12,8 @@ pub(crate) use invocation::CallCheckingBehavior;
 pub use root::RootContext;
 
 use source_map::SpanWithSource;
+use unified_identifier::UnifiedIdentifierBuf;
+use once_cell::sync::Lazy;
 
 use crate::{
 	context::environment::ExpectedReturnType,
@@ -143,11 +145,11 @@ impl<'a> From<&'a Environment<'a>> for GeneralContext<'a> {
 }
 
 pub struct Names {
-	pub(crate) variables: HashMap<String, VariableOrImport>,
-	pub(crate) named_types: HashMap<String, TypeId>,
+        pub(crate) variables: HashMap<UnifiedIdentifierBuf, VariableOrImport>,
+        pub(crate) named_types: HashMap<UnifiedIdentifierBuf, TypeId>,
 
-	/// For debugging only
-	pub(crate) variable_names: HashMap<VariableId, String>,
+        /// For debugging only
+        pub(crate) variable_names: HashMap<VariableId, UnifiedIdentifierBuf>,
 }
 
 #[derive(Debug)]
@@ -156,11 +158,11 @@ pub struct Context<T: ContextType> {
 	pub context_id: ContextId,
 	pub(crate) context_type: T,
 
-	pub(crate) variables: HashMap<String, VariableOrImport>,
-	pub(crate) named_types: HashMap<String, TypeId>,
+        pub(crate) variables: HashMap<UnifiedIdentifierBuf, VariableOrImport>,
+        pub(crate) named_types: HashMap<UnifiedIdentifierBuf, TypeId>,
 
 	/// For debugging AND noting what contexts contain what variables
-	pub(crate) variable_names: HashMap<VariableId, String>,
+        pub(crate) variable_names: HashMap<VariableId, UnifiedIdentifierBuf>,
 
 	/// TODO unsure if needed
 	pub(crate) deferred_function_constraints: HashMap<FunctionId, (FunctionType, SpanWithSource)>,
@@ -197,13 +199,13 @@ impl<T: ContextType> Context<T> {
 	/// Declares a new variable in the environment and returns the new variable
 	/// TODO maybe name: `VariableDeclarator` to include destructuring ...?
 	/// TODO hoisted vs declared
-	pub fn register_variable<'b>(
-		&mut self,
-		name: &'b str,
-		declared_at: SpanWithSource,
-		VariableRegisterArguments { constant, initial_value, space, allow_reregistration }: VariableRegisterArguments,
-		record_event: bool,
-	) -> Result<(), CannotRedeclareVariable<'b>> {
+        pub fn register_variable<'b>(
+                &mut self,
+                name: &'b UnifiedIdentifierBuf,
+                declared_at: SpanWithSource,
+                VariableRegisterArguments { constant, initial_value, space, allow_reregistration }: VariableRegisterArguments,
+                record_event: bool,
+        ) -> Result<(), CannotRedeclareVariable<'b>> {
 		let id = VariableId(declared_at.source, declared_at.start);
 
 		let mutability = if constant {
@@ -219,7 +221,7 @@ impl<T: ContextType> Context<T> {
 			allow_reregistration,
 		};
 
-		let entry = self.variables.entry(name.to_owned());
+                let entry = self.variables.entry(name.clone());
 		let existing_that_can_be_rewritten = match entry {
 			Entry::Occupied(e) => match e.get() {
 				VariableOrImport::Variable { allow_reregistration, .. } => !*allow_reregistration,
@@ -228,7 +230,7 @@ impl<T: ContextType> Context<T> {
 			},
 			Entry::Vacant(vacant) => {
 				vacant.insert(variable);
-				self.variable_names.insert(id, name.to_owned());
+                                self.variable_names.insert(id, name.clone());
 				false
 			}
 		};
@@ -241,7 +243,7 @@ impl<T: ContextType> Context<T> {
 
 			if record_event {
 				self.info.events.push(crate::events::Event::RegisterVariable {
-					name: name.to_owned(),
+                                        name: name.clone(),
 					position: declared_at,
 					initial_value,
 				});
@@ -255,15 +257,15 @@ impl<T: ContextType> Context<T> {
 		}
 	}
 
-	pub fn register_variable_handle_error(
-		&mut self,
-		name: &str,
-		argument: VariableRegisterArguments,
-		declared_at: SpanWithSource,
-		diagnostics_container: &mut DiagnosticsContainer,
-		type_mappings: &mut TypeMappings,
-		record_event: bool,
-	) {
+        pub fn register_variable_handle_error(
+                &mut self,
+                name: &UnifiedIdentifierBuf,
+                argument: VariableRegisterArguments,
+                declared_at: SpanWithSource,
+                diagnostics_container: &mut DiagnosticsContainer,
+                type_mappings: &mut TypeMappings,
+                record_event: bool,
+        ) {
 		if argument.allow_reregistration {
 			if let Some(existing) = self.variables.get(name) {
 				type_mappings.var_aliases.insert(declared_at.start, existing.get_id());
@@ -275,11 +277,11 @@ impl<T: ContextType> Context<T> {
 			type_mappings.variables_to_constraints.0.insert(id, reassignment_constraint);
 		}
 
-		let register_variable = self.register_variable(name, declared_at, argument, record_event);
+                let register_variable = self.register_variable(name, declared_at, argument, record_event);
 
 		if let Err(CannotRedeclareVariable { name }) = register_variable {
 			diagnostics_container.add_error(TypeCheckError::CannotRedeclareVariable {
-				name: name.to_owned(),
+                                name: name.clone(),
 				position: declared_at,
 			});
 		}
@@ -426,10 +428,10 @@ impl<T: ContextType> Context<T> {
 	/// First `bool` is whether this variable is on [`Context<Root>`]
 	///
 	/// **NOTE THIS IS RECURSIVE. Each step can append information**
-	fn get_variable_unbound(
-		&self,
-		variable_name: &str,
-	) -> Option<(bool, Option<Boundary>, &VariableOrImport)> {
+        fn get_variable_unbound(
+                &self,
+                variable_name: &UnifiedIdentifierBuf,
+        ) -> Option<(bool, Option<Boundary>, &VariableOrImport)> {
 		// crate::utilities::notify!(
 		// 	"Looking for {:?}, self.variables = {:?}",
 		// 	variable_name,
@@ -486,33 +488,36 @@ impl<T: ContextType> Context<T> {
 	}
 
 	/// Note: this also returns base generic types like `Array`
-	pub fn get_type_from_name(&self, name: &str) -> Option<TypeId> {
-		self.parents_iter().find_map(|env| get_on_ctx!(env.named_types.get(name))).copied()
-	}
+        pub fn get_type_from_name(&self, name: &UnifiedIdentifierBuf) -> Option<TypeId> {
+                self.parents_iter().find_map(|env| get_on_ctx!(env.named_types.get(name))).copied()
+        }
 
 	#[allow(clippy::map_flatten)]
-	pub fn get_all_variable_names(&self) -> impl Iterator<Item = &str> {
-		self.parents_iter()
-			.map(|env| get_on_ctx!(env.variables.keys()))
-			.flatten()
-			.map(AsRef::as_ref)
-	}
+        pub fn get_all_variable_names(&self) -> impl Iterator<Item = &UnifiedIdentifierBuf> {
+                self.parents_iter()
+                        .map(|env| get_on_ctx!(env.variables.keys()))
+                        .flatten()
+                        .map(|v| v)
+        }
 
 	#[allow(clippy::map_flatten)]
-	pub fn get_all_named_types(&self) -> impl Iterator<Item = &str> {
-		self.parents_iter()
-			.map(|env| get_on_ctx!(env.named_types.keys()))
-			.flatten()
-			.map(AsRef::as_ref)
-	}
+        pub fn get_all_named_types(&self) -> impl Iterator<Item = &UnifiedIdentifierBuf> {
+                self.parents_iter()
+                        .map(|env| get_on_ctx!(env.named_types.keys()))
+                        .flatten()
+                        .map(|v| v)
+        }
 
-	pub(crate) fn get_variable_name(&self, id: VariableId) -> &str {
-		match self.parents_iter().find_map(|env| get_on_ctx!(env.variable_names.get(&id))) {
-			Some(s) => s.as_str(),
-			// TODO temp
-			None => format!("could not find name for variable @ {id:?}").leak(),
-		}
-	}
+        pub(crate) fn get_variable_name(&self, id: VariableId) -> &UnifiedIdentifierBuf {
+                match self.parents_iter().find_map(|env| get_on_ctx!(env.variable_names.get(&id))) {
+                        Some(s) => s,
+                        // TODO temp
+                        None => {
+                                static UNKNOWN: once_cell::sync::Lazy<UnifiedIdentifierBuf> = once_cell::sync::Lazy::new(|| UnifiedIdentifierBuf::new("unknown"));
+                                &*UNKNOWN
+                        }
+                }
+        }
 
 	pub fn as_general_context(&self) -> GeneralContext {
 		T::as_general_context(self)
@@ -750,41 +755,41 @@ impl<T: ContextType> Context<T> {
 	/// <T>(...)
 	///  ^
 	/// ```
-	pub fn new_explicit_type_parameter(
-		&mut self,
-		name: &str,
-		constraint_type: Option<TypeId>,
-		default_type: Option<TypeId>,
-		types: &mut TypeStore,
-	) -> crate::types::generics::GenericTypeParameter {
-		let ty = Type::RootPolyType(PolyNature::FunctionGeneric {
-			name: name.to_owned(),
+        pub fn new_explicit_type_parameter(
+                &mut self,
+                name: &str,
+                constraint_type: Option<TypeId>,
+                default_type: Option<TypeId>,
+                types: &mut TypeStore,
+        ) -> crate::types::generics::GenericTypeParameter {
+                let ty = Type::RootPolyType(PolyNature::FunctionGeneric {
+                        name: UnifiedIdentifierBuf::new(name),
 			// TODO this is fixed!!
 			extends: constraint_type.unwrap_or(TypeId::ANY_TYPE),
 		});
 
 		let ty = types.register_type(ty);
-		self.named_types.insert(name.to_owned(), ty);
+                self.named_types.insert(name.to_owned(), ty);
 
-		crate::types::generics::GenericTypeParameter {
-			name: name.to_owned(),
+                crate::types::generics::GenericTypeParameter {
+                        name: UnifiedIdentifierBuf::new(name),
 			type_id: ty,
 			default: default_type,
 		}
 	}
 
-	pub fn get_type_by_name_handle_errors<U, A: crate::ASTImplementation>(
-		&self,
-		name: &str,
-		pos: SpanWithSource,
-		checking_data: &mut CheckingData<U, A>,
-	) -> TypeId {
-		if let Some(val) = self.get_type_from_name(name) {
+        pub fn get_type_by_name_handle_errors<U, A: crate::ASTImplementation>(
+                &self,
+                name: &UnifiedIdentifierBuf,
+                pos: SpanWithSource,
+                checking_data: &mut CheckingData<U, A>,
+        ) -> TypeId {
+                if let Some(val) = self.get_type_from_name(name) {
 			val
 		} else {
 			let possibles = {
-				let mut possibles =
-					crate::get_closest(self.get_all_named_types(), name).unwrap_or(vec![]);
+                                let mut possibles =
+                                        crate::get_closest(self.get_all_named_types(), name).unwrap_or(vec![]);
 				possibles.sort_unstable();
 				possibles
 			};
@@ -805,14 +810,14 @@ impl<T: ContextType> Context<T> {
 	}
 
 	/// TODO remove types
-	pub fn declare_variable<'a>(
-		&mut self,
-		name: &'a str,
-		declared_at: SpanWithSource,
-		variable_ty: TypeId,
-		types: &mut TypeStore,
-		context: Option<String>,
-	) -> Result<TypeId, CannotRedeclareVariable<'a>> {
+        pub fn declare_variable<'a>(
+                &mut self,
+                name: &'a UnifiedIdentifierBuf,
+                declared_at: SpanWithSource,
+                variable_ty: TypeId,
+                types: &mut TypeStore,
+                context: Option<String>,
+        ) -> Result<TypeId, CannotRedeclareVariable<'a>> {
 		let id = crate::VariableId(declared_at.source, declared_at.start);
 
 		let kind = VariableMutability::Constant;
@@ -822,7 +827,7 @@ impl<T: ContextType> Context<T> {
 			context,
 			allow_reregistration: false,
 		};
-		let entry = self.variables.entry(name.to_owned());
+                let entry = self.variables.entry(name.clone());
 		if let Entry::Vacant(vacant) = entry {
 			vacant.insert(variable);
 
@@ -838,9 +843,9 @@ impl<T: ContextType> Context<T> {
 			self.info.variable_current_value.insert(id, ty);
 			Ok(ty)
 		} else {
-			Err(CannotRedeclareVariable { name })
-		}
-	}
+                        Err(CannotRedeclareVariable { name })
+                }
+        }
 
 	pub(crate) fn get_object_constraint(&self, on: TypeId) -> Option<TypeId> {
 		self.parents_iter()
