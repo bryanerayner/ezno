@@ -1,5 +1,6 @@
 use source_map::{SourceId, Span, SpanWithSource};
 use std::collections::{HashMap, HashSet};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	context::{get_on_ctx, information::ReturnState},
@@ -34,7 +35,7 @@ use super::{
 };
 
 /// For WIP contextual access of certain APIs
-pub type ContextLocation = Option<String>;
+pub type ContextLocation = Option<UnifiedIdentifierBuf>;
 
 /// Error type for something already being defined
 pub struct AlreadyExists;
@@ -166,7 +167,7 @@ impl FunctionScope {
 }
 
 /// For labeled statements
-pub type Label = Option<String>;
+pub type Label = Option<UnifiedIdentifierBuf>;
 
 #[derive(Clone, Copy)]
 pub enum Returnable<'a, A: crate::ASTImplementation> {
@@ -1385,13 +1386,13 @@ impl Environment<'_> {
 				.collect()
 		});
 
-		let ty = Type::Interface {
-			name: name.to_owned(),
+                let ty = Type::Interface {
+                        name: UnifiedIdentifierBuf::new(name),
 			parameters,
 			extends: extends.map(|_| TypeId::ANY_TO_INFER_TYPE),
 		};
 		let interface_ty = types.register_type(ty);
-		self.named_types.insert(name.to_owned(), interface_ty);
+                self.named_types.insert(UnifiedIdentifierBuf::new(name), interface_ty);
 		Ok(DeclareInterfaceResult::New(interface_ty))
 	}
 
@@ -1452,9 +1453,9 @@ impl Environment<'_> {
 				.collect()
 		});
 
-		let ty = Type::Class { name: name.to_owned(), type_parameters };
-		let class_type = types.register_type(ty);
-		self.named_types.insert(name.to_owned(), class_type);
+                let ty = Type::Class { name: UnifiedIdentifierBuf::new(name), type_parameters };
+                let class_type = types.register_type(ty);
+                self.named_types.insert(UnifiedIdentifierBuf::new(name), class_type);
 		// TODO duplicates
 
 		Ok(class_type)
@@ -1481,9 +1482,9 @@ impl Environment<'_> {
 				.collect()
 		});
 
-		let ty = Type::AliasTo { to: TypeId::ANY_TO_INFER_TYPE, name: name.to_owned(), parameters };
-		let alias_ty = types.register_type(ty);
-		let existing_type = self.named_types.insert(name.to_owned(), alias_ty);
+                let ty = Type::AliasTo { to: TypeId::ANY_TO_INFER_TYPE, name: UnifiedIdentifierBuf::new(name), parameters };
+                let alias_ty = types.register_type(ty);
+                let existing_type = self.named_types.insert(UnifiedIdentifierBuf::new(name), alias_ty);
 
 		if existing_type.is_none() {
 			Ok(alias_ty)

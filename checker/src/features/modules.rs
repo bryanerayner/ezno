@@ -12,6 +12,7 @@ use crate::{
 
 use simple_json_parser::{JSONKey, RootJSONValue};
 use source_map::{FileSystem, Span};
+use unified_identifier::UnifiedIdentifierBuf;
 
 /// For imports and exports
 #[derive(Debug)]
@@ -57,10 +58,10 @@ impl<M> SynthesisedModule<M> {
 /// TODO tidy
 #[derive(Clone, Debug, Default, binary_serialize_derive::BinarySerializable)]
 pub struct Exported {
-	pub default: Option<TypeId>,
-	/// Mutability purely for the mutation thingy
-	pub named: Map<String, (VariableId, VariableMutability)>,
-	pub named_types: Map<String, TypeId>,
+        pub default: Option<TypeId>,
+        /// Mutability purely for the mutation thingy
+        pub named: Map<UnifiedIdentifierBuf, (VariableId, VariableMutability)>,
+        pub named_types: Map<UnifiedIdentifierBuf, TypeId>,
 }
 
 pub type ExportedVariable = (VariableId, VariableMutability);
@@ -156,7 +157,7 @@ pub fn import_items<
 					import_specified_at: position.with_source(current_source),
 				};
 				environment.info.variable_current_value.insert(id, *item);
-				let existing = environment.variables.insert(default_name.to_owned(), v);
+                                let existing = environment.variables.insert(UnifiedIdentifierBuf::new(default_name), v);
 				if let Some(existing) = existing {
 					checking_data.diagnostics_container.add_error(
 						crate::diagnostics::TypeCheckError::DuplicateImportName {
@@ -258,8 +259,8 @@ pub fn import_items<
 								.position
 								.with_source(environment.get_source()),
 						};
-						crate::utilities::notify!("{:?}", part.r#as.to_owned());
-						let existing = environment.variables.insert(part.r#as.to_owned(), v);
+                                                crate::utilities::notify!("{:?}", part.r#as);
+                                                let existing = environment.variables.insert(part.r#as.clone(), v);
 						if let Some(existing) = existing {
 							checking_data.diagnostics_container.add_error(
 								crate::diagnostics::TypeCheckError::DuplicateImportName {
@@ -286,14 +287,14 @@ pub fn import_items<
 							if let Scope::Module { ref mut exported, .. } =
 								environment.context_type.scope
 							{
-								exported.named.insert(part.r#as.to_owned(), (variable, mutability));
+                                                                exported.named.insert(part.r#as.clone(), (variable, mutability));
 							}
 						}
 					}
 
 					// add type to scope
 					if let Some(ty) = exported_type {
-						let existing = environment.named_types.insert(part.r#as.to_owned(), ty);
+                                                let existing = environment.named_types.insert(part.r#as.clone(), ty);
 						assert!(existing.is_none(), "TODO exception");
 					}
 				} else {

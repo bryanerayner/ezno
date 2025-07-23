@@ -7,6 +7,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{borrow::Cow, fmt, hash::{Hash, Hasher}, ops::Deref};
 use once_cell::sync::OnceCell;
 use std::borrow::Borrow;
+use source_map::SourceId;
 
 /* -------------------------------------------------------------------------
  *  Normalised data representation (borrowed)
@@ -38,10 +39,15 @@ impl checker_utility_types::BinarySerializable for UnifiedIdentifierBuf {
 		buf.extend_from_slice(self.as_bytes());
 	}
 
-	fn deserialize<I: Iterator<Item = u8>>(iter: &mut I, _source: SourceId) -> Self {
-		let len = iter.next().unwrap();
-		iter.by_ref().take(len as usize).map(|v| v as char).collect::<String>()
-	}
+        fn deserialize<I: Iterator<Item = u8>>(iter: &mut I, _source: SourceId) -> Self {
+                let len = iter.next().unwrap();
+                let string = iter
+                        .by_ref()
+                        .take(len as usize)
+                        .map(|v| v as char)
+                        .collect::<String>();
+                Self::new(string)
+        }
 }
 
 impl Borrow<str> for UnifiedIdentifierBuf {

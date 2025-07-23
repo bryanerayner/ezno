@@ -12,6 +12,7 @@ use crate::{
 };
 use source_map::SourceId;
 use std::{collections::HashMap, iter::FromIterator, mem};
+use unified_identifier::UnifiedIdentifierBuf;
 
 pub type RootContext = Context<Root>;
 
@@ -55,38 +56,38 @@ impl RootContext {
 	#[must_use]
 	pub fn new_with_primitive_references() -> Self {
 		// TODO number might not be a reference at some point
-		let named_types = HashMap::from_iter([
-			("number".to_owned(), TypeId::NUMBER_TYPE),
-			("string".to_owned(), TypeId::STRING_TYPE),
-			("boolean".to_owned(), TypeId::BOOLEAN_TYPE),
-			("null".to_owned(), TypeId::NULL_TYPE),
-			("undefined".to_owned(), TypeId::UNDEFINED_TYPE),
-			("void".to_owned(), TypeId::VOID_TYPE),
-			("Array".to_owned(), TypeId::ARRAY_TYPE),
-			("Promise".to_owned(), TypeId::PROMISE_TYPE),
-			("RegExp".to_owned(), TypeId::REGEXP_TYPE),
-			("ImportMeta".to_owned(), TypeId::IMPORT_META),
-			("Function".to_owned(), TypeId::FUNCTION_TYPE),
-			("object".to_owned(), TypeId::OBJECT_TYPE),
-			("Literal".to_owned(), TypeId::LITERAL_RESTRICTION),
-			("Readonly".to_owned(), TypeId::READONLY_RESTRICTION),
-			("Exclusive".to_owned(), TypeId::EXCLUSIVE_RESTRICTION),
-			("Uppercase".to_owned(), TypeId::STRING_UPPERCASE),
-			("Lowercase".to_owned(), TypeId::STRING_LOWERCASE),
-			("Capitalize".to_owned(), TypeId::STRING_CAPITALIZE),
-			("Uncapitalize".to_owned(), TypeId::STRING_UNCAPITALIZE),
-			("NoInfer".to_owned(), TypeId::NO_INFER),
-			("GreaterThan".to_owned(), TypeId::GREATER_THAN),
-			("LessThan".to_owned(), TypeId::LESS_THAN),
-			("MultipleOf".to_owned(), TypeId::MULTIPLE_OF),
-			("NotNotANumber".to_owned(), TypeId::NUMBER_BUT_NOT_NOT_A_NUMBER),
-			("Not".to_owned(), TypeId::NOT_RESTRICTION),
-			("CaseInsensitive".to_owned(), TypeId::CASE_INSENSITIVE),
-			("Infinity".to_owned(), TypeId::INFINITY),
-			("NegativeInfinity".to_owned(), TypeId::NEG_INFINITY),
-			("MinFloat".to_owned(), TypeId::FLOAT_MIN),
-			("MaxFloat".to_owned(), TypeId::FLOAT_MAX),
-		]);
+                let named_types = HashMap::from_iter([
+                        (UnifiedIdentifierBuf::new("number"), TypeId::NUMBER_TYPE),
+                        (UnifiedIdentifierBuf::new("string"), TypeId::STRING_TYPE),
+                        (UnifiedIdentifierBuf::new("boolean"), TypeId::BOOLEAN_TYPE),
+                        (UnifiedIdentifierBuf::new("null"), TypeId::NULL_TYPE),
+                        (UnifiedIdentifierBuf::new("undefined"), TypeId::UNDEFINED_TYPE),
+                        (UnifiedIdentifierBuf::new("void"), TypeId::VOID_TYPE),
+                        (UnifiedIdentifierBuf::new("Array"), TypeId::ARRAY_TYPE),
+                        (UnifiedIdentifierBuf::new("Promise"), TypeId::PROMISE_TYPE),
+                        (UnifiedIdentifierBuf::new("RegExp"), TypeId::REGEXP_TYPE),
+                        (UnifiedIdentifierBuf::new("ImportMeta"), TypeId::IMPORT_META),
+                        (UnifiedIdentifierBuf::new("Function"), TypeId::FUNCTION_TYPE),
+                        (UnifiedIdentifierBuf::new("object"), TypeId::OBJECT_TYPE),
+                        (UnifiedIdentifierBuf::new("Literal"), TypeId::LITERAL_RESTRICTION),
+                        (UnifiedIdentifierBuf::new("Readonly"), TypeId::READONLY_RESTRICTION),
+                        (UnifiedIdentifierBuf::new("Exclusive"), TypeId::EXCLUSIVE_RESTRICTION),
+                        (UnifiedIdentifierBuf::new("Uppercase"), TypeId::STRING_UPPERCASE),
+                        (UnifiedIdentifierBuf::new("Lowercase"), TypeId::STRING_LOWERCASE),
+                        (UnifiedIdentifierBuf::new("Capitalize"), TypeId::STRING_CAPITALIZE),
+                        (UnifiedIdentifierBuf::new("Uncapitalize"), TypeId::STRING_UNCAPITALIZE),
+                        (UnifiedIdentifierBuf::new("NoInfer"), TypeId::NO_INFER),
+                        (UnifiedIdentifierBuf::new("GreaterThan"), TypeId::GREATER_THAN),
+                        (UnifiedIdentifierBuf::new("LessThan"), TypeId::LESS_THAN),
+                        (UnifiedIdentifierBuf::new("MultipleOf"), TypeId::MULTIPLE_OF),
+                        (UnifiedIdentifierBuf::new("NotNotANumber"), TypeId::NUMBER_BUT_NOT_NOT_A_NUMBER),
+                        (UnifiedIdentifierBuf::new("Not"), TypeId::NOT_RESTRICTION),
+                        (UnifiedIdentifierBuf::new("CaseInsensitive"), TypeId::CASE_INSENSITIVE),
+                        (UnifiedIdentifierBuf::new("Infinity"), TypeId::INFINITY),
+                        (UnifiedIdentifierBuf::new("NegativeInfinity"), TypeId::NEG_INFINITY),
+                        (UnifiedIdentifierBuf::new("MinFloat"), TypeId::FLOAT_MIN),
+                        (UnifiedIdentifierBuf::new("MaxFloat"), TypeId::FLOAT_MAX),
+                ]);
 
 		let mut info = LocalInformation::default();
 
@@ -99,7 +100,7 @@ impl RootContext {
 				allow_reregistration: false,
 			};
 			let undefined_id = variable_or_import.get_id();
-			let variables = [("undefined".to_owned(), variable_or_import)];
+                        let variables = [(UnifiedIdentifierBuf::new("undefined"), variable_or_import)];
 			info.variable_current_value.insert(undefined_id, TypeId::UNDEFINED_TYPE);
 			variables
 		};
