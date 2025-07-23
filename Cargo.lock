@@ -295,6 +295,7 @@ dependencies = [
  "iterator-endiate",
  "levenshtein",
  "match_deref",
+ "once_cell",
  "path-absolutize",
  "regress",
  "serde",

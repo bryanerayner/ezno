@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use super::variables::{VariableMutability, VariableOrImport};
 use crate::{
@@ -57,21 +58,21 @@ impl<M> SynthesisedModule<M> {
 /// TODO tidy
 #[derive(Clone, Debug, Default, binary_serialize_derive::BinarySerializable)]
 pub struct Exported {
-	pub default: Option<TypeId>,
-	/// Mutability purely for the mutation thingy
-	pub named: Map<String, (VariableId, VariableMutability)>,
-	pub named_types: Map<String, TypeId>,
+        pub default: Option<TypeId>,
+        /// Mutability purely for the mutation thingy
+        pub named: Map<UnifiedIdentifierBuf, (VariableId, VariableMutability)>,
+        pub named_types: Map<UnifiedIdentifierBuf, TypeId>,
 }
 
 pub type ExportedVariable = (VariableId, VariableMutability);
 
 impl Exported {
 	#[must_use]
-	pub fn get_export(
-		&self,
-		want: &str,
-		type_only: bool,
-	) -> (Option<ExportedVariable>, Option<TypeId>) {
+        pub fn get_export(
+                &self,
+                want: &UnifiedIdentifierBuf,
+                type_only: bool,
+        ) -> (Option<ExportedVariable>, Option<TypeId>) {
 		let variable = if type_only {
 			None
 		} else {
@@ -83,9 +84,9 @@ impl Exported {
 		(variable, r#type)
 	}
 
-	pub fn keys(&self) -> impl Iterator<Item = &str> {
-		self.named.keys().chain(self.named_types.keys()).map(AsRef::as_ref)
-	}
+        pub fn keys(&self) -> impl Iterator<Item = &UnifiedIdentifierBuf> {
+                self.named.keys().chain(self.named_types.keys()).map(|v| v)
+        }
 }
 
 /// After a syntax error
@@ -111,7 +112,7 @@ pub fn import_items<
 	environment: &mut Environment,
 	partial_import_path: &str,
 	import_position: Span,
-	default_import: Option<(&str, Span)>,
+        default_import: Option<(UnifiedIdentifierBuf, Span)>,
 	kind: ImportKind<'b, P>,
 	checking_data: &mut CheckingData<T, A>,
 	also_export: bool,
@@ -147,7 +148,7 @@ pub fn import_items<
 
 	let current_source = environment.get_source();
 
-	if let Some((default_name, position)) = default_import {
+        if let Some((default_name, position)) = default_import {
 		if let Ok(Ok(ref exports)) = exports {
 			if let Some(item) = &exports.default {
 				let id = crate::VariableId(current_source, position.start);
@@ -156,7 +157,7 @@ pub fn import_items<
 					import_specified_at: position.with_source(current_source),
 				};
 				environment.info.variable_current_value.insert(id, *item);
-				let existing = environment.variables.insert(default_name.to_owned(), v);
+                            let existing = environment.variables.insert(default_name.clone(), v);
 				if let Some(existing) = existing {
 					checking_data.diagnostics_container.add_error(
 						crate::diagnostics::TypeCheckError::DuplicateImportName {
@@ -180,9 +181,9 @@ pub fn import_items<
 				);
 			}
 		} else {
-			environment.register_variable_handle_error(
-				default_name,
-				VariableRegisterArguments {
+                        environment.register_variable_handle_error(
+                                &default_name,
+                                VariableRegisterArguments {
 					constant: true,
 					initial_value: Some(TypeId::ERROR_TYPE),
 					space: None,
@@ -223,9 +224,9 @@ pub fn import_items<
 						);
 
 						// Register error
-						environment.register_variable_handle_error(
-							part.r#as,
-							VariableRegisterArguments {
+                                                environment.register_variable_handle_error(
+                                                        &UnifiedIdentifierBuf::new(part.r#as.to_owned()),
+                                                        VariableRegisterArguments {
 								constant: true,
 								space: None,
 								initial_value: Some(TypeId::ERROR_TYPE),
@@ -286,22 +287,26 @@ pub fn import_items<
 							if let Scope::Module { ref mut exported, .. } =
 								environment.context_type.scope
 							{
-								exported.named.insert(part.r#as.to_owned(), (variable, mutability));
+                                                                exported
+                                                                        .named
+                                                                        .insert(UnifiedIdentifierBuf::new(part.r#as.to_owned()), (variable, mutability));
 							}
 						}
 					}
 
 					// add type to scope
-					if let Some(ty) = exported_type {
-						let existing = environment.named_types.insert(part.r#as.to_owned(), ty);
+                                        if let Some(ty) = exported_type {
+                                                let existing = environment
+                                                        .named_types
+                                                        .insert(UnifiedIdentifierBuf::new(part.r#as.to_owned()), ty);
 						assert!(existing.is_none(), "TODO exception");
 					}
 				} else {
 					// This happens if imported is an invalid file (syntax issue, doesn't exist etc)
 					// Don't need to emit an error here
 					let declared_at = part.position.with_source(environment.get_source());
-					environment.register_variable_handle_error(
-						part.r#as,
+                                        environment.register_variable_handle_error(
+                                                &UnifiedIdentifierBuf::new(part.r#as.to_owned()),
 						VariableRegisterArguments {
 							constant: true,
 							space: None,
@@ -326,8 +331,8 @@ pub fn import_items<
 				crate::utilities::notify!("TODO :?");
 				TypeId::UNIMPLEMENTED_ERROR_TYPE
 			};
-			environment.register_variable_handle_error(
-				under,
+                        environment.register_variable_handle_error(
+                                &UnifiedIdentifierBuf::new(under.to_owned()),
 				VariableRegisterArguments {
 					constant: true,
 					space: None,

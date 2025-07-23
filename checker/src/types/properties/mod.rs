@@ -175,34 +175,41 @@ impl PropertyKey<'_> {
 
 	/// For quick things
 	#[must_use]
-	pub fn is_equal_to(&self, key: &str) -> bool {
-		match self {
-			PropertyKey::String(s) => s == key,
-			PropertyKey::Type(_t) => false,
-		}
-	}
+        pub fn is_equal_to(&self, key: &str) -> bool {
+                match self {
+                        PropertyKey::UnifiedIdentifier(id) => id.as_str() == key,
+                        PropertyKey::String(s) => s == key,
+                        PropertyKey::Type(_t) => false,
+                }
+        }
 
 	/// TODO when is this used
-	pub fn into_type(&self, types: &mut TypeStore) -> TypeId {
-		match self {
-			PropertyKey::String(s) => {
-				types.new_constant_type(Constant::String(s.clone().into_owned()))
-			}
-			PropertyKey::Type(t) => *t,
-		}
-	}
+        pub fn into_type(&self, types: &mut TypeStore) -> TypeId {
+                match self {
+                        PropertyKey::UnifiedIdentifier(id) => {
+                                types.new_constant_type(Constant::String(id.original_string().clone()))
+                        }
+                        PropertyKey::String(s) => {
+                                types.new_constant_type(Constant::String(s.clone().into_owned()))
+                        }
+                        PropertyKey::Type(t) => *t,
+                }
+        }
 
-	pub fn into_name_type(&self, types: &mut TypeStore) -> TypeId {
-		match self {
-			PropertyKey::String(s) => {
-				types.new_constant_type(Constant::String(s.clone().into_owned()))
-			}
-			PropertyKey::Type(t) => {
-				crate::utilities::notify!("TODO Symbol has different printing here");
-				*t
-			}
-		}
-	}
+        pub fn into_name_type(&self, types: &mut TypeStore) -> TypeId {
+                match self {
+                        PropertyKey::UnifiedIdentifier(id) => {
+                                types.new_constant_type(Constant::String(id.original_string().clone()))
+                        }
+                        PropertyKey::String(s) => {
+                                types.new_constant_type(Constant::String(s.clone().into_owned()))
+                        }
+                        PropertyKey::Type(t) => {
+                                crate::utilities::notify!("TODO Symbol has different printing here");
+                                *t
+                        }
+                }
+        }
 
 	pub(crate) fn substitute(
 		&self,
@@ -210,14 +217,14 @@ impl PropertyKey<'_> {
 		top_environment: &Environment,
 		types: &mut TypeStore,
 	) -> Self {
-		match self {
-			PropertyKey::Type(under) => {
-				let ty = super::substitute(*under, type_arguments, top_environment, types);
-				PropertyKey::from_type(ty, types)
-			}
-			under @ PropertyKey::String(_) => under.clone(),
-		}
-	}
+                match self {
+                        PropertyKey::Type(under) => {
+                                let ty = super::substitute(*under, type_arguments, top_environment, types);
+                                PropertyKey::from_type(ty, types)
+                        }
+                        PropertyKey::UnifiedIdentifier(_) | under @ PropertyKey::String(_) => under.clone(),
+                }
+        }
 }
 
 /// For getting `length` and stuff

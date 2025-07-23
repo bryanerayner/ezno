@@ -361,12 +361,12 @@ pub(crate) enum TypeCheckError<'a> {
 	NotInLoopOrCouldNotFindLabel(NotInLoopOrCouldNotFindLabel),
 	#[allow(dead_code)]
 	RestParameterAnnotationShouldBeArrayType(SpanWithSource),
-	CouldNotFindVariable {
-		variable: &'a str,
-		possibles: Vec<&'a str>,
-		position: SpanWithSource,
-	},
-	CouldNotFindType(&'a str, Vec<&'a str>, SpanWithSource),
+        CouldNotFindVariable {
+                variable: &'a UnifiedIdentifierBuf,
+                possibles: Vec<&'a UnifiedIdentifierBuf>,
+                position: SpanWithSource,
+        },
+        CouldNotFindType(&'a UnifiedIdentifierBuf, Vec<&'a UnifiedIdentifierBuf>, SpanWithSource),
 	/// For all `=`, including from declarations
 	AssignmentError(AssignmentError),
 	SetPropertyError(SetPropertyError),
@@ -1136,7 +1136,7 @@ impl From<EntryPointNotFound> for Diagnostic {
 
 #[derive(Debug)]
 pub struct CannotRedeclareVariable<'a> {
-	pub name: &'a str,
+        pub name: &'a UnifiedIdentifierBuf,
 }
 
 /// `context` is the what kind of a function call the error happened in. (for example tagged template literals or JSX)

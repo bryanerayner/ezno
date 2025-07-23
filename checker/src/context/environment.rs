@@ -1,5 +1,6 @@
 use source_map::{SourceId, Span, SpanWithSource};
 use std::collections::{HashMap, HashSet};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	context::{get_on_ctx, information::ReturnState},
@@ -216,9 +217,9 @@ pub enum Scope {
 	PassThrough {
 		source: SourceId,
 	},
-	TypeAnnotationCondition {
-		infer_parameters: HashMap<String, TypeId>,
-	},
+        TypeAnnotationCondition {
+                infer_parameters: HashMap<UnifiedIdentifierBuf, TypeId>,
+        },
 	TypeAnnotationConditionResult,
 }
 
@@ -648,22 +649,22 @@ impl Environment<'_> {
 		checking_data: &mut CheckingData<U, A>,
 	) {
 		match reference {
-			Reference::Variable(name, position) => {
-				self.assign_to_variable_handle_errors(name.as_str(), position, rhs, checking_data);
-			}
+                        Reference::Variable(name, position) => {
+                                self.assign_to_variable_handle_errors(&name, position, rhs, checking_data);
+                        }
 			Reference::Property { on, with, publicity, position } => {
 				self.set_property_handle_errors(on, publicity, &with, rhs, position, checking_data);
 			}
 		}
 	}
 
-	pub fn assign_to_variable_handle_errors<T: crate::ReadFromFS, A: crate::ASTImplementation>(
-		&mut self,
-		variable_name: &str,
-		assignment_position: SpanWithSource,
-		new_type: TypeId,
-		checking_data: &mut CheckingData<T, A>,
-	) {
+        pub fn assign_to_variable_handle_errors<T: crate::ReadFromFS, A: crate::ASTImplementation>(
+                &mut self,
+                variable_name: &UnifiedIdentifierBuf,
+                assignment_position: SpanWithSource,
+                new_type: TypeId,
+                checking_data: &mut CheckingData<T, A>,
+        ) {
 		let result = self.assign_to_variable(
 			variable_name,
 			assignment_position,
@@ -681,13 +682,13 @@ impl Environment<'_> {
 	}
 
 	/// This is top level variables, not properties.
-	pub fn assign_to_variable(
-		&mut self,
-		variable_name: &str,
-		assignment_position: SpanWithSource,
-		new_type: TypeId,
-		types: &mut TypeStore,
-	) -> Result<(), AssignmentError> {
+        pub fn assign_to_variable(
+                &mut self,
+                variable_name: &UnifiedIdentifierBuf,
+                assignment_position: SpanWithSource,
+                new_type: TypeId,
+                types: &mut TypeStore,
+        ) -> Result<(), AssignmentError> {
 		// Get without the effects
 		let variable_in_map = self.get_variable_unbound(variable_name);
 
@@ -875,21 +876,21 @@ impl Environment<'_> {
 		}
 	}
 
-	pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementation>(
-		&mut self,
-		name: &str,
-		position: SpanWithSource,
-		checking_data: &mut CheckingData<U, A>,
-	) -> Result<VariableWithValue, TypeId> {
+pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementation>(
+                &mut self,
+                name: &UnifiedIdentifierBuf,
+                position: SpanWithSource,
+                checking_data: &mut CheckingData<U, A>,
+        ) -> Result<VariableWithValue, TypeId> {
 		let (in_root, crossed_boundary, og_var) = {
-			let variable_information = self.get_variable_unbound(name);
+                        let variable_information = self.get_variable_unbound(name);
 			// crate::utilities::notify!("{:?} returned {:?}", name, variable_information);
 			if let Some((in_root, crossed_boundary, og_var)) = variable_information {
 				(in_root, crossed_boundary, og_var.clone())
 			} else {
 				let possibles = {
-					let mut possibles =
-						crate::get_closest(self.get_all_variable_names(), name).unwrap_or(vec![]);
+                                        let mut possibles =
+                                                crate::get_closest(self.get_all_variable_names().map(AsRef::as_ref), name.as_str()).unwrap_or(vec![]);
 					possibles.sort_unstable();
 					possibles
 				};
@@ -1576,20 +1577,20 @@ impl Environment<'_> {
 		));
 	}
 
-	pub fn new_infer_type(
-		&mut self,
-		expected: TypeId,
-		infer_name: &str,
-		types: &mut TypeStore,
-	) -> TypeId {
+        pub fn new_infer_type(
+                &mut self,
+                expected: TypeId,
+                infer_name: UnifiedIdentifierBuf,
+                types: &mut TypeStore,
+        ) -> TypeId {
 		if let Scope::TypeAnnotationCondition { ref mut infer_parameters } = self.context_type.scope
 		{
-			let infer_type = types.register_type(Type::RootPolyType(PolyNature::InferGeneric {
-				name: infer_name.to_owned(),
-				extends: expected,
-			}));
+                        let infer_type = types.register_type(Type::RootPolyType(PolyNature::InferGeneric {
+                                name: infer_name.clone(),
+                                extends: expected,
+                        }));
 
-			let existing = infer_parameters.insert(infer_name.to_owned(), infer_type);
+                        let existing = infer_parameters.insert(infer_name, infer_type);
 			if existing.is_some() {
 				crate::utilities::notify!("Raise error diagnostic");
 			}

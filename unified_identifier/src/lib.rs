@@ -6,6 +6,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use std::{borrow::Cow, fmt, hash::{Hash, Hasher}, ops::Deref};
 use once_cell::sync::OnceCell;
+use source_map::SourceId;
 use std::borrow::Borrow;
 
 /* -------------------------------------------------------------------------
@@ -31,17 +32,17 @@ pub struct UnifiedIdentifierBuf {
 }
 
 impl checker_utility_types::BinarySerializable for UnifiedIdentifierBuf {
-    
-	fn serialize(self, buf: &mut Vec<u8>) {
-		// TODO VLQ?
-		buf.push(u8::try_from(self.len()).expect("serializing a large string"));
-		buf.extend_from_slice(self.as_bytes());
-	}
+    fn serialize(self, buf: &mut Vec<u8>) {
+        // TODO VLQ?
+        buf.push(u8::try_from(self.len()).expect("serializing a large string"));
+        buf.extend_from_slice(self.as_bytes());
+    }
 
-	fn deserialize<I: Iterator<Item = u8>>(iter: &mut I, _source: SourceId) -> Self {
-		let len = iter.next().unwrap();
-		iter.by_ref().take(len as usize).map(|v| v as char).collect::<String>()
-	}
+    fn deserialize<I: Iterator<Item = u8>>(iter: &mut I, _source: SourceId) -> Self {
+        let len = iter.next().unwrap();
+        let s: String = iter.by_ref().take(len as usize).map(|v| v as char).collect();
+        Self::new(s)
+    }
 }
 
 impl Borrow<str> for UnifiedIdentifierBuf {

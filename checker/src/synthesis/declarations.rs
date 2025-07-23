@@ -1,9 +1,10 @@
 use parser::{declarations::VariableDeclaration, ASTNode, Declaration};
 
 use crate::{
-	context::Environment, diagnostics::TypeCheckError, features::variables::VariableMutability,
-	CheckingData, Scope, TypeId,
+        context::Environment, diagnostics::TypeCheckError, features::variables::VariableMutability,
+        CheckingData, Scope, TypeId,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 use super::{
 	classes::synthesise_class_declaration, expressions::synthesise_expression,
@@ -84,10 +85,10 @@ pub(crate) fn synthesise_declaration<T: crate::ReadFromFS>(
 									environment.context_type.scope
 								{
 									if let Ok(value) = value {
-										exported.named.insert(
-											pair.r#as.to_owned(),
-											(value.0.get_id(), value.0.get_mutability()),
-										);
+                                                                               exported.named.insert(
+                                                                               UnifiedIdentifierBuf::new(pair.r#as.to_owned()),
+                                                                               (value.0.get_id(), value.0.get_mutability()),
+                                                                               );
 									}
 								}
 							}
