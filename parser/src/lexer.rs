@@ -44,11 +44,6 @@ pub struct Lexer<'a> {
 	state: ParsingState,
 }
 
-pub enum ParseIdentiferResult<'a> {
-	UnifiedIdentifier(UnifiedIdentifier<'a>),
-	Str(&'a str)
-}
-
 #[allow(clippy::manual_find)]
 impl<'a> Lexer<'a> {
 	// (crate)

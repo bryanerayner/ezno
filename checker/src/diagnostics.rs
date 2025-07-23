@@ -53,7 +53,7 @@ pub enum Diagnostic {
 /// Temporary dead zone. Between the variable identifier being hoisted and the value being assigned
 #[allow(clippy::upper_case_acronyms)]
 pub struct VariableUsedInTDZ {
-	pub variable_name: String,
+	pub variable_name: UnifiedIdentifierBuf,
 	pub position: SpanWithSource,
 }
 
@@ -363,10 +363,10 @@ pub(crate) enum TypeCheckError<'a> {
 	RestParameterAnnotationShouldBeArrayType(SpanWithSource),
         CouldNotFindVariable {
                 variable: &'a UnifiedIdentifierBuf,
-                possibles: Vec<&'a UnifiedIdentifierBuf>,
+                possibles: Vec<UnifiedIdentifierBuf>,
                 position: SpanWithSource,
         },
-        CouldNotFindType(&'a UnifiedIdentifierBuf, Vec<&'a UnifiedIdentifierBuf>, SpanWithSource),
+        CouldNotFindType(&'a UnifiedIdentifierBuf, Vec<UnifiedIdentifierBuf>, SpanWithSource),
 	/// For all `=`, including from declarations
 	AssignmentError(AssignmentError),
 	SetPropertyError(SetPropertyError),
@@ -415,7 +415,7 @@ pub(crate) enum TypeCheckError<'a> {
 		position: SpanWithSource,
 	},
 	CannotRedeclareVariable {
-		name: String,
+		name: UnifiedIdentifierBuf,
 		position: SpanWithSource,
 	},
 	/// This is for structure generics (type annotations)
@@ -512,7 +512,24 @@ pub(crate) enum TypeCheckError<'a> {
 
 #[allow(clippy::useless_format)]
 #[must_use]
-pub fn get_possibles_message(possibles: &[&str]) -> String {
+pub fn get_possibles_message(possibles: &[UnifiedIdentifierBuf]) -> String {
+	match possibles {
+		[] => format!(""),
+		[a] => format!("Did you mean '{a}'?"),
+		[a @ .., b] => {
+			let mut iter = a.iter();
+			let first = format!("'{first}'", first = iter.next().unwrap());
+			format!(
+				"Did you mean {items} or '{b}'?",
+				items = iter.fold(first, |acc, item| format!("{acc}, '{item}'"))
+			)
+		}
+	}
+}
+
+#[allow(clippy::useless_format)]
+#[must_use]
+pub fn get_possibles_message_str(possibles: &[&str]) -> String {
 	match possibles {
 		[] => format!(""),
 		[a] => format!("Did you mean '{a}'?"),
@@ -568,7 +585,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 					},
 					position,
 					labels: map_error_empty(possibles, |possibles| vec![(
-						get_possibles_message(&possibles),
+						get_possibles_message_str(&possibles),
 						position,
 					)]),
 					kind,
@@ -675,7 +692,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 					position,
 					kind,
 					labels: map_error_empty(possibles, |possibles| vec![(
-						get_possibles_message(&possibles),
+						get_possibles_message_str(&possibles),
 						position,
 					)]),
 				}
@@ -771,7 +788,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 					position: import_position,
 					kind,
 					labels: map_error_empty(possibles, |possibles| vec![(
-						get_possibles_message(&possibles),
+						get_possibles_message_str(&possibles),
 						import_position,
 					)])
 				}

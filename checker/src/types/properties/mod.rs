@@ -75,6 +75,10 @@ impl crate::BinarySerializable for PropertyKey<'static> {
 				buf.push(0);
 				crate::BinarySerializable::serialize(s.into_owned(), buf);
 			}
+			PropertyKey::UnifiedIdentifier(s) => {
+				buf.push(0);
+				crate::BinarySerializable::serialize(s.into_owned(), buf);
+			}
 			PropertyKey::Type(t) => {
 				buf.push(1);
 				crate::BinarySerializable::serialize(t, buf);
@@ -127,6 +131,7 @@ impl PropertyKey<'_> {
 	pub fn into_owned(&self) -> PropertyKey<'static> {
 		match self {
 			PropertyKey::String(s) => PropertyKey::String(Cow::Owned(s.to_string())),
+			PropertyKey::UnifiedIdentifier(s) => PropertyKey::UnifiedIdentifier(s.clone()),
 			PropertyKey::Type(s) => PropertyKey::Type(*s),
 		}
 	}
@@ -159,6 +164,7 @@ impl PropertyKey<'_> {
 	pub(crate) fn as_number(&self, types: &TypeStore) -> Option<usize> {
 		match self {
 			PropertyKey::String(s) => s.parse::<usize>().ok(),
+			PropertyKey::UnifiedIdentifier(s) => s.as_str().parse::<usize>().ok(),
 			PropertyKey::Type(t) => {
 				if let Type::Constant(Constant::Number(n)) = types.get_type_by_id(*t) {
 					float_as_u8(*n).map(|n| n as usize)
@@ -222,7 +228,8 @@ impl PropertyKey<'_> {
                                 let ty = super::substitute(*under, type_arguments, top_environment, types);
                                 PropertyKey::from_type(ty, types)
                         }
-                        PropertyKey::UnifiedIdentifier(_) | under @ PropertyKey::String(_) => under.clone(),
+                        PropertyKey::UnifiedIdentifier(f) => PropertyKey::UnifiedIdentifier(f.clone()),
+						PropertyKey::String(f) => PropertyKey::String(f.clone())
                 }
         }
 }
@@ -416,6 +423,36 @@ pub(crate) fn key_matches(
 			};
 			(matches, SliceArguments::default())
 		}
+		(PropertyKey::UnifiedIdentifier(left), PropertyKey::String(right)) => {
+			let matches = if let Some(transform) =
+				key_type_arguments.and_then(|a| a.get_string_transform())
+			{
+				super::intrinsics::apply_string_intrinsic(transform, left).as_str() == right
+			} else {
+				left == right
+			};
+			(matches, SliceArguments::default())
+		}
+		(PropertyKey::UnifiedIdentifier(left), PropertyKey::UnifiedIdentifier(right)) => {
+			let matches = if let Some(transform) =
+				key_type_arguments.and_then(|a| a.get_string_transform())
+			{
+				right == super::intrinsics::apply_string_intrinsic(transform, left).as_str()
+			} else {
+				left == right
+			};
+			(matches, SliceArguments::default())
+		}
+		(PropertyKey::String(left), PropertyKey::UnifiedIdentifier(right)) => {
+			let matches = if let Some(transform) =
+				key_type_arguments.and_then(|a| a.get_string_transform())
+			{
+				right == super::intrinsics::apply_string_intrinsic(transform, left).as_str()
+			} else {
+				right == left
+			};
+			(matches, SliceArguments::default())
+		}
 		(PropertyKey::Type(key), PropertyKey::String(s)) => {
 			// crate::utilities::notify!(
 			// 	"Key equality: have {:?} want {:?}",
@@ -522,6 +559,113 @@ pub(crate) fn key_matches(
 				}
 			}
 		}
+
+		(PropertyKey::Type(key), PropertyKey::UnifiedIdentifier(s)) => {
+			// crate::utilities::notify!(
+			// 	"Key equality: have {:?} want {:?}",
+			// 	(key, key_type_arguments),
+			// 	(want, want_type_arguments)
+			// );
+
+			if let Some(substituted_key) =
+				key_type_arguments.and_then(|args| args.get_single_argument(*key))
+			{
+				key_matches(
+					(&PropertyKey::Type(substituted_key), key_type_arguments),
+					(want, want_type_arguments),
+					info_chain,
+					types,
+				)
+			} else {
+				let key = *key;
+				// First some special bases just for property keys
+				let mut contributions = SliceArguments::default();
+				let result = slice_matches_type(
+					(key, key_type_arguments),
+					s.as_ref(),
+					Some(&mut contributions),
+					info_chain,
+					types,
+					true,
+				);
+				(result, contributions)
+			}
+		}
+		(PropertyKey::UnifiedIdentifier(s), PropertyKey::Type(want)) => {
+			// This is a special branch because it can refer to many properties
+			if let Some(substituted_key) =
+				want_type_arguments.and_then(|args| args.get_single_argument(*want))
+			{
+				key_matches(
+					(key, key_type_arguments),
+					(&PropertyKey::Type(substituted_key), want_type_arguments),
+					info_chain,
+					types,
+				)
+			} else {
+				let want_ty = types.get_type_by_id(*want);
+				// crate::utilities::notify!("{:?} key_ty={:?}", s, want_ty);
+				if let Type::Or(lhs, rhs) = want_ty {
+					// TODO
+					if let matched @ (true, _) = key_matches(
+						(key, key_type_arguments),
+						(&PropertyKey::Type(*lhs), key_type_arguments),
+						info_chain,
+						types,
+					) {
+						matched
+					} else {
+						key_matches(
+							(key, key_type_arguments),
+							(&PropertyKey::Type(*rhs), key_type_arguments),
+							info_chain,
+							types,
+						)
+					}
+				} else if let Type::RootPolyType(PolyNature::MappedGeneric {
+					extends: to, ..
+				})
+				| Type::AliasTo { to, .. } = want_ty
+				{
+					key_matches(
+						(key, key_type_arguments),
+						(&PropertyKey::Type(*to), want_type_arguments),
+						info_chain,
+						types,
+					)
+				} else if let Type::Constructor(crate::types::Constructor::KeyOf(on)) = want_ty {
+					let matches = get_properties_on_single_type2(
+						(*on, want_type_arguments),
+						types,
+						info_chain,
+						TypeId::ANY_TYPE,
+					)
+					.iter()
+					.all(|(rhs_key, _, _)| {
+						// TODO what about keys here
+						key_matches(
+							(key, key_type_arguments),
+							(rhs_key, want_type_arguments),
+							info_chain,
+							types,
+						)
+						.0
+					});
+					(matches, Default::default())
+				} else if let Type::Constant(c) = want_ty {
+					// crate::utilities::notify!("{:?}", c);
+					// TODO
+					(*s == c.as_js_string(), SliceArguments::default())
+				} else if *want == TypeId::NUMBER_TYPE {
+					(s.parse::<usize>().is_ok(), SliceArguments::default())
+				} else if *want == TypeId::STRING_TYPE {
+					// Nuance about symbol here. TODO
+					(true, SliceArguments::default())
+				} else {
+					(false, SliceArguments::default())
+				}
+			}
+		}
 		(PropertyKey::Type(left), PropertyKey::Type(right)) => {
 			let mut state = crate::types::subtyping::State {
 				already_checked: Default::default(),
@@ -553,6 +697,7 @@ pub fn get_property_as_string(
 ) -> String {
 	match property {
 		PropertyKey::String(s) => s.to_string(),
+		PropertyKey::UnifiedIdentifier(s) => s.to_string(),
 		PropertyKey::Type(t) => crate::types::printing::print_type(*t, types, environment, false),
 	}
 }

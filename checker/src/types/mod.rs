@@ -41,6 +41,7 @@ use crate::{
 
 use derive_debug_extras::DebugExtras;
 use source_map::SpanWithSource;
+use unified_identifier::UnifiedIdentifierBuf;
 
 pub type ExplicitTypeArgument = (TypeId, SpanWithSource);
 
@@ -228,13 +229,13 @@ pub enum PolyNature {
 	/// - more accurate return types
 	Parameter { fixed_to: TypeId, variable_id: crate::VariableId },
 	/// This is on a structure (`class`, `interface` and `type` alias)
-	StructureGeneric { name: String, extends: TypeId },
+	StructureGeneric { name: UnifiedIdentifierBuf, extends: TypeId },
 	/// From `infer U`.
-	InferGeneric { name: String, extends: TypeId },
+	InferGeneric { name: UnifiedIdentifierBuf, extends: TypeId },
 	/// For explicit generics (or on external definitions). Note can be a standalone parameter in some cases
-	FunctionGeneric { name: String, extends: TypeId },
+	FunctionGeneric { name: UnifiedIdentifierBuf, extends: TypeId },
 	/// For mapped types
-	MappedGeneric { name: String, extends: TypeId },
+	MappedGeneric { name: UnifiedIdentifierBuf, extends: TypeId },
 	/// An error occurred and it looks like
 	Error(TypeId),
 	/// This is generic types. Examples such as a fetch

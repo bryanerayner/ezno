@@ -3,9 +3,8 @@
 //! The trait and code currently exists here as there may be some context related things.
 //! May become a separate crate at some point
 
-use std::collections::{HashMap, HashSet};
 
-use source_map::{SourceId, SpanWithSource};
+use source_map::{SourceId};
 use checker_utility_types::BinarySerializable;
 
 use crate::TypeId;

@@ -17,6 +17,7 @@ use crate::{
 };
 
 pub(crate) use application::apply_events;
+use unified_identifier::UnifiedIdentifierBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, binary_serialize_derive::BinarySerializable)]
 pub enum RootReference {
@@ -138,7 +139,7 @@ pub enum Event {
 	/// **doesn't affect type checking**
 	/// useful for linting WIP
 	RegisterVariable {
-		name: String,
+		name: UnifiedIdentifierBuf,
 		position: SpanWithSource,
 		/// `None` for `let x;`
 		initial_value: Option<TypeId>,

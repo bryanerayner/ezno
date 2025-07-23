@@ -892,6 +892,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
                                         let mut possibles =
                                                 crate::get_closest(self.get_all_variable_names().map(AsRef::as_ref), name.as_str()).unwrap_or(vec![]);
 					possibles.sort_unstable();
+					let possibles: Vec<UnifiedIdentifierBuf> = possibles.into_iter().map(UnifiedIdentifierBuf::from).collect();
 					possibles
 				};
 				checking_data.diagnostics_container.add_error(
@@ -1392,7 +1393,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 			extends: extends.map(|_| TypeId::ANY_TO_INFER_TYPE),
 		};
 		let interface_ty = types.register_type(ty);
-		self.named_types.insert(name.to_owned(), interface_ty);
+		self.named_types.insert(name, interface_ty);
 		Ok(DeclareInterfaceResult::New(interface_ty))
 	}
 

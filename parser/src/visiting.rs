@@ -91,20 +91,20 @@ mod ast {
 	impl Visitable for UnifiedIdentifierBuf {
 		fn visit<TData>(
 					&self,
-					visitors: &mut (impl VisitorReceiver<TData> + ?Sized),
-					data: &mut TData,
-					options: &VisitOptions,
-					chain: &mut Annex<Chain>,
+					_visitors: &mut (impl VisitorReceiver<TData> + ?Sized),
+					_data: &mut TData,
+					_options: &VisitOptions,
+					_chain: &mut Annex<Chain>,
 				) {
 					
 		}
 	
 		fn visit_mut<TData>(
 					&mut self,
-					visitors: &mut (impl VisitorMutReceiver<TData> + ?Sized),
-					data: &mut TData,
-					options: &VisitOptions,
-					chain: &mut Annex<Chain>,
+					_visitors: &mut (impl VisitorMutReceiver<TData> + ?Sized),
+					_data: &mut TData,
+					_options: &VisitOptions,
+					_chain: &mut Annex<Chain>,
 				) {
 		}
 	}

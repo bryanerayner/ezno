@@ -31,6 +31,16 @@ pub struct UnifiedIdentifierBuf {
     canonical:  OnceCell<String>,   // cached canonical name (Pascal/camel)
 }
 
+impl Default for UnifiedIdentifierBuf {
+    fn default() -> Self {
+        Self {
+            original: String::new(),
+            normalized: Vec::new(),
+            canonical: OnceCell::new(),
+        }
+    }
+}
+
 impl checker_utility_types::BinarySerializable for UnifiedIdentifierBuf {
     fn serialize(self, buf: &mut Vec<u8>) {
         // TODO VLQ?
@@ -50,6 +60,20 @@ impl Borrow<str> for UnifiedIdentifierBuf {
         &self.original
     }
 }
+
+impl PartialEq<String> for UnifiedIdentifierBuf {
+    fn eq(&self, other: &String) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
+impl PartialEq<UnifiedIdentifierBuf> for String {
+    fn eq(&self, other: &UnifiedIdentifierBuf) -> bool {
+        self.as_str() == other.as_str()
+    }
+}
+
+
 
 impl UnifiedIdentifierBuf {
     /* ----- ctor & accessors -------------------------------------------*/
@@ -112,6 +136,13 @@ impl<'a> Into<String> for &'a UnifiedIdentifierBuf {
 impl PartialEq<str> for UnifiedIdentifierBuf {
     fn eq(&self, other: &str) -> bool {
         self.as_str() == other
+    }
+}
+
+// Implement PartialEq<Cow<'_, str>> for UnifiedIdentifierBuf
+impl<'a> PartialEq<Cow<'a, str>> for UnifiedIdentifierBuf {
+    fn eq(&self, other: &Cow<'a, str>) -> bool {
+        self.as_str() == other.as_ref()
     }
 }
 
