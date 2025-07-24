@@ -889,10 +889,13 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 				(in_root, crossed_boundary, og_var.clone())
 			} else {
 				let possibles = {
-                                        let mut possibles =
-                                                crate::get_closest(self.get_all_variable_names().map(AsRef::as_ref), name.as_str()).unwrap_or(vec![]);
+					let mut possibles =
+						crate::get_closest(self.get_all_variable_names().map(AsRef::as_ref), name.as_str()).unwrap_or(vec![]);
 					possibles.sort_unstable();
-					let possibles: Vec<UnifiedIdentifierBuf> = possibles.into_iter().map(UnifiedIdentifierBuf::from).collect();
+					let possibles: Vec<&UnifiedIdentifierBuf> = possibles
+						.into_iter()
+						.filter_map(|f| self.get_all_variable_names().find(|n| n.as_ref() == f))
+						.collect();
 					possibles
 				};
 				checking_data.diagnostics_container.add_error(
@@ -1378,7 +1381,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 				.iter()
 				.map(|parameter| {
 					let ty = Type::RootPolyType(PolyNature::StructureGeneric {
-						name: A::type_parameter_name(parameter).to_owned(),
+						name: UnifiedIdentifierBuf::from(A::type_parameter_name(parameter)),
 						// This is assigned later
 						extends: TypeId::ANY_TO_INFER_TYPE,
 					});
@@ -1393,7 +1396,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 			extends: extends.map(|_| TypeId::ANY_TO_INFER_TYPE),
 		};
 		let interface_ty = types.register_type(ty);
-		self.named_types.insert(name, interface_ty);
+		self.named_types.insert(UnifiedIdentifierBuf::from(name), interface_ty);
 		Ok(DeclareInterfaceResult::New(interface_ty))
 	}
 

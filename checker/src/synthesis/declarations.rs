@@ -77,7 +77,7 @@ pub(crate) fn synthesise_declaration<T: crate::ReadFromFS>(
 							if let Some(pair) = pair {
 								let position = pair.position.with_source(environment.get_source());
 								let value = environment.get_variable_handle_error(
-									pair.value,
+									&UnifiedIdentifierBuf::from(pair.value),
 									position,
 									checking_data,
 								);

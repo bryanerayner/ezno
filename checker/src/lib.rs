@@ -806,3 +806,17 @@ pub fn get_closest<'a, 'b>(
 		1.. => Some(candidates),
 	}
 }
+
+pub fn get_closest_unified_identifier_buf<'a, 'b>(
+	items: impl Iterator<Item = &'a UnifiedIdentifierBuf>,
+	closest_one: &'b str,
+) -> Option<Vec<&'a UnifiedIdentifierBuf>> {
+	const MIN_DISTANCE: usize = 2;
+	let candidates = items
+		.filter(|item| levenshtein::levenshtein(closest_one, item) <= MIN_DISTANCE)
+		.collect::<Vec<&'a UnifiedIdentifierBuf>>();
+	match candidates.len() {
+		0 => None,
+		1.. => Some(candidates),
+	}
+}

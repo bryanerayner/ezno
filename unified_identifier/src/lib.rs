@@ -139,6 +139,9 @@ impl PartialEq<str> for UnifiedIdentifierBuf {
     }
 }
 
+
+
+
 // Implement PartialEq<Cow<'_, str>> for UnifiedIdentifierBuf
 impl<'a> PartialEq<Cow<'a, str>> for UnifiedIdentifierBuf {
     fn eq(&self, other: &Cow<'a, str>) -> bool {
@@ -186,9 +189,21 @@ impl Deref for UnifiedIdentifierBuf { type Target = str; fn deref(&self) -> &str
 impl AsRef<str> for UnifiedIdentifierBuf { fn as_ref(&self) -> &str { &self.original } }
 impl fmt::Display for UnifiedIdentifierBuf { fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { self.original.fmt(f) } }
 
-/* ----- Equality / Hash on canonical form -------------------------------*/
+/* ----- Equality / Hash / Ord on canonical form -------------------------------*/
 impl PartialEq for UnifiedIdentifierBuf { fn eq(&self, other: &Self) -> bool { self.squash() == other.squash() } }
 impl Hash for UnifiedIdentifierBuf { fn hash<H: Hasher>(&self, state: &mut H) { self.squash().hash(state) } }
+
+impl PartialOrd for UnifiedIdentifierBuf {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.squash().cmp(&other.squash()))
+    }
+}
+
+impl Ord for UnifiedIdentifierBuf {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.squash().cmp(&other.squash())
+    }
+}
 
 /* ----- String ↔ UID conversions ---------------------------------------*/
 impl From<String>      for UnifiedIdentifierBuf { fn from(s: String)   -> Self { Self::new(s) } }

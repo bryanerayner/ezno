@@ -769,7 +769,7 @@ impl<T: ContextType> Context<T> {
 		});
 
 		let ty = types.register_type(ty);
-                self.named_types.insert(name.to_owned(), ty);
+                self.named_types.insert(UnifiedIdentifierBuf::from(name), ty);
 
                 crate::types::generics::GenericTypeParameter {
                         name: UnifiedIdentifierBuf::new(name),
@@ -789,7 +789,7 @@ impl<T: ContextType> Context<T> {
 		} else {
 			let possibles = {
                                 let mut possibles =
-                                        crate::get_closest(self.get_all_named_types(), name).unwrap_or(vec![]);
+                                        crate::get_closest_unified_identifier_buf(self.get_all_named_types(), name).unwrap_or(vec![]);
 				possibles.sort_unstable();
 				possibles
 			};

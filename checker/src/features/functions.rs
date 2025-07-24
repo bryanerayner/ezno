@@ -58,7 +58,7 @@ pub fn register_expression_function<T: crate::ReadFromFS, A: crate::ASTImplement
 	is_async: bool,
 	is_generator: bool,
 	location: ContextLocation,
-        name: Option<UnifiedIdentifierBuf>,
+	name: Option<UnifiedIdentifierBuf>,
 	function: &impl SynthesisableFunction<A>,
 	environment: &mut Environment,
 	checking_data: &mut CheckingData<T, A>,

@@ -363,10 +363,10 @@ pub(crate) enum TypeCheckError<'a> {
 	RestParameterAnnotationShouldBeArrayType(SpanWithSource),
         CouldNotFindVariable {
                 variable: &'a UnifiedIdentifierBuf,
-                possibles: Vec<UnifiedIdentifierBuf>,
+                possibles: Vec<&'a UnifiedIdentifierBuf>,
                 position: SpanWithSource,
         },
-        CouldNotFindType(&'a UnifiedIdentifierBuf, Vec<UnifiedIdentifierBuf>, SpanWithSource),
+        CouldNotFindType(&'a UnifiedIdentifierBuf, Vec<&'a UnifiedIdentifierBuf>, SpanWithSource),
 	/// For all `=`, including from declarations
 	AssignmentError(AssignmentError),
 	SetPropertyError(SetPropertyError),
@@ -512,7 +512,7 @@ pub(crate) enum TypeCheckError<'a> {
 
 #[allow(clippy::useless_format)]
 #[must_use]
-pub fn get_possibles_message(possibles: &[UnifiedIdentifierBuf]) -> String {
+pub fn get_possibles_message(possibles: &[&UnifiedIdentifierBuf]) -> String {
 	match possibles {
 		[] => format!(""),
 		[a] => format!("Did you mean '{a}'?"),

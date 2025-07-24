@@ -716,7 +716,7 @@ pub(super) fn synthesise_expression<T: crate::ReadFromFS>(
 		}
 		Expression::VariableReference(name, position) => {
 			let get_variable_or_alternatives = environment.get_variable_handle_error(
-				name.as_str(),
+				&name,
 				position.with_source(environment.get_source()),
 				checking_data,
 			);
@@ -972,7 +972,7 @@ pub(super) fn synthesise_expression<T: crate::ReadFromFS>(
 				parser::functions::FunctionLocationModifier::Worker => "worker".to_owned(),
 				parser::functions::FunctionLocationModifier::Test => "test".to_owned(),
 			});
-			let name = function.name.as_option_str().map(ToOwned::to_owned);
+			let name = function.name.as_option_unified_identifier_buf();
 			Instance::RValue(register_expression_function(
 				expecting,
 				is_async,

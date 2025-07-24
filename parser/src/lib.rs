@@ -47,6 +47,7 @@ pub use types::{
 	type_annotations::{self, TypeAnnotation},
 	type_declarations::{self, TypeParameter},
 };
+use unified_identifier::{UnifiedIdentifier, UnifiedIdentifierBuf};
 pub use variable_fields::*;
 
 pub(crate) use lexer::Lexer;
@@ -270,6 +271,22 @@ pub trait ExpressionOrStatementPosition:
 	fn as_option_str(&self) -> Option<&str> {
 		if let Some(identifier) = self.as_option_variable_identifier() {
 			identifier.as_option_str()
+		} else {
+			None
+		}
+	}
+
+	fn as_option_unified_identifier(&self) -> Option<UnifiedIdentifier> {
+		if let Some(identifier) = self.as_option_variable_identifier() {
+			identifier.as_option_unified_identifier()
+		} else {
+			None
+		}
+	}
+
+	fn as_option_unified_identifier_buf(&self) -> Option<UnifiedIdentifierBuf> {
+		if let Some(identifier) = self.as_option_variable_identifier() {
+			identifier.as_option_unified_identifier_buf()
 		} else {
 			None
 		}
