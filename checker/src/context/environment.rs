@@ -1447,7 +1447,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 				.iter()
 				.map(|parameter| {
 					let ty = Type::RootPolyType(PolyNature::StructureGeneric {
-						name: A::type_parameter_name(parameter).to_owned(),
+						name: UnifiedIdentifierBuf::from(A::type_parameter_name(parameter)),
 						//A::parameter_constrained(parameter),
 						// TODO
 						extends: TypeId::ANY_TO_INFER_TYPE,
@@ -1459,7 +1459,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 
 		let ty = Type::Class { name: name.to_owned(), type_parameters };
 		let class_type = types.register_type(ty);
-		self.named_types.insert(name.to_owned(), class_type);
+		self.named_types.insert(UnifiedIdentifierBuf::from(name), class_type);
 		// TODO duplicates
 
 		Ok(class_type)
@@ -1477,7 +1477,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 				.iter()
 				.map(|parameter| {
 					let ty = Type::RootPolyType(PolyNature::StructureGeneric {
-						name: A::type_parameter_name(parameter).to_owned(),
+						name: UnifiedIdentifierBuf::from(A::type_parameter_name(parameter)),
 						// Set later for recursion
 						extends: TypeId::ANY_TO_INFER_TYPE,
 					});
@@ -1488,7 +1488,7 @@ pub fn get_variable_handle_error<U: crate::ReadFromFS, A: crate::ASTImplementati
 
 		let ty = Type::AliasTo { to: TypeId::ANY_TO_INFER_TYPE, name: name.to_owned(), parameters };
 		let alias_ty = types.register_type(ty);
-		let existing_type = self.named_types.insert(name.to_owned(), alias_ty);
+		let existing_type = self.named_types.insert(UnifiedIdentifierBuf::from(name), alias_ty);
 
 		if existing_type.is_none() {
 			Ok(alias_ty)
