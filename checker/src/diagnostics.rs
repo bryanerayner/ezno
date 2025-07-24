@@ -383,7 +383,7 @@ pub(crate) enum TypeCheckError<'a> {
 		file: &'a str,
 		importing: &'a str,
 		position: SpanWithSource,
-		possibles: Vec<&'a str>,
+		possibles: Vec<&'a UnifiedIdentifierBuf>,
 	},
 	/// For the `satisfies` keyword
 	NotSatisfied {
@@ -458,7 +458,7 @@ pub(crate) enum TypeCheckError<'a> {
 	},
 	TypeNeedsTypeArguments(&'a str, SpanWithSource),
 	TypeAlreadyDeclared {
-		name: String,
+		name: UnifiedIdentifierBuf,
 		position: SpanWithSource,
 	},
 	#[allow(clippy::upper_case_acronyms)]
@@ -692,7 +692,7 @@ impl From<TypeCheckError<'_>> for Diagnostic {
 					position,
 					kind,
 					labels: map_error_empty(possibles, |possibles| vec![(
-						get_possibles_message_str(&possibles),
+						get_possibles_message(&possibles),
 						position,
 					)]),
 				}

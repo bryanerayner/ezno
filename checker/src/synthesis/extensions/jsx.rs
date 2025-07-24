@@ -6,6 +6,7 @@ use parser::{
 	jsx::{JSXAttribute, JSXElement, JSXElementChildren, JSXNode, JSXRoot},
 	ASTNode, Expression,
 };
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	context::invocation::CheckThings,
@@ -198,11 +199,11 @@ pub(crate) fn synthesise_jsx_element<T: crate::ReadFromFS>(
 
 	let position = element.get_position().with_source(environment.get_source());
 	let jsx_function =
-		if let Ok(ty) = environment.get_variable_handle_error(JSX_NAME, position, checking_data) {
+		if let Ok(ty) = environment.get_variable_handle_error(&UnifiedIdentifierBuf::from( JSX_NAME), position, checking_data) {
 			ty.1
 		} else {
 			checking_data.diagnostics_container.add_error(TypeCheckError::CouldNotFindVariable {
-				variable: JSX_NAME,
+				variable: &UnifiedIdentifierBuf::from(JSX_NAME),
 				possibles: Vec::default(),
 				position,
 			});

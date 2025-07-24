@@ -204,12 +204,12 @@ pub fn import_items<
 				if let Ok(Ok(ref exports)) = exports {
 					crate::utilities::notify!("{:?}", part);
 					let (exported_variable, exported_type) =
-						exports.get_export(part.value, type_only);
+						exports.get_export(&UnifiedIdentifierBuf::from(part.value), type_only);
 
 					if exported_variable.is_none() && exported_type.is_none() {
 						let possibles = {
 							let mut possibles =
-								crate::get_closest(exports.keys(), part.value).unwrap_or(vec![]);
+								crate::get_closest_unified_identifier_buf(exports.keys(), part.value).unwrap_or(vec![]);
 							possibles.sort_unstable();
 							possibles
 						};
@@ -260,7 +260,7 @@ pub fn import_items<
 								.with_source(environment.get_source()),
 						};
 						crate::utilities::notify!("{:?}", part.r#as.to_owned());
-						let existing = environment.variables.insert(part.r#as.to_owned(), v);
+						let existing = environment.variables.insert( UnifiedIdentifierBuf::from(part.r#as), v);
 						if let Some(existing) = existing {
 							checking_data.diagnostics_container.add_error(
 								crate::diagnostics::TypeCheckError::DuplicateImportName {
