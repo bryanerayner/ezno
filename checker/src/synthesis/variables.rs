@@ -147,6 +147,7 @@ pub(crate) fn register_variable<T: crate::ReadFromFS>(
 						if let Some(ref mut taken_members) = taken_members {
 							match key {
 								PropertyKey::String(ref s) => taken_members.push(s.clone()),
+								PropertyKey::UnifiedIdentifier(ref s) => taken_members.push(Cow::Owned(s.original_string().clone())),
 								PropertyKey::Type(_) => {
 									crate::utilities::notify!("Cannot remove type");
 								}
@@ -407,6 +408,11 @@ fn assign_initial_to_fields<T: crate::ReadFromFS>(
 														s.to_string(),
 													)
 												}
+												PropertyKey::UnifiedIdentifier(s) => {
+													PropertyKeyRepresentation::UnifiedIdentifierKey(
+														UnifiedIdentifierBuf::from(s),
+													)
+												}
 												PropertyKey::Type(t) => {
 													PropertyKeyRepresentation::Type(
 														printing::print_type(
@@ -483,6 +489,11 @@ fn assign_initial_to_fields<T: crate::ReadFromFS>(
 												PropertyKey::String(s) => {
 													PropertyKeyRepresentation::StringKey(
 														s.to_string(),
+													)
+												}
+												PropertyKey::UnifiedIdentifier(s) => {
+													PropertyKeyRepresentation::UnifiedIdentifierKey(
+														s.clone(),
 													)
 												}
 												PropertyKey::Type(t) => {

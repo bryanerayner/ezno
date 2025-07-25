@@ -82,12 +82,12 @@ pub fn synthesise_type_annotation<T: crate::ReadFromFS>(
 							ty
 						}
 					} else {
-                                                let possibles = {
-                                                        let mut possibles = crate::get_closest(
-                                                                environment.get_all_named_types().map(AsRef::as_ref),
-                                                                name.as_str(),
-                                                        )
-                                                        .unwrap_or(vec![]);
+						let possibles = {
+							let mut possibles = crate::get_closest_unified_identifier_buf(
+								environment.get_all_named_types(),
+								name.as_str(),
+							)
+							.unwrap_or(vec![]);
 							possibles.sort_unstable();
 							possibles
 						};
@@ -170,7 +170,7 @@ pub fn synthesise_type_annotation<T: crate::ReadFromFS>(
 									{
 										environment.new_infer_type(
 											parameter_restriction,
-											name,
+											name.clone(),
 											&mut checking_data.types,
 										)
 									} else {
@@ -304,9 +304,11 @@ pub fn synthesise_type_annotation<T: crate::ReadFromFS>(
 						}
 					} else {
 						let possibles = {
-							let mut possibles =
-								crate::get_closest(environment.get_all_named_types(), name)
-									.unwrap_or(vec![]);
+							let mut possibles = crate::get_closest_unified_identifier_buf(
+								environment.get_all_named_types(),
+								name,
+							)
+							.unwrap_or(vec![]);
 							possibles.sort_unstable();
 							possibles
 						};
@@ -735,7 +737,11 @@ pub fn synthesise_type_annotation<T: crate::ReadFromFS>(
 				let rhs = if let TypeAnnotation::Infer { name, extends: None, position: _ } =
 					dynamic_part
 				{
-                                        environment.new_infer_type(TypeId::STRING_TYPE, name.clone(), &mut checking_data.types)
+					environment.new_infer_type(
+						TypeId::STRING_TYPE,
+						name.clone(),
+						&mut checking_data.types,
+					)
 				} else {
 					synthesise_type_annotation(dynamic_part, environment, checking_data)
 				};

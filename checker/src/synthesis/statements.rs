@@ -234,7 +234,7 @@ pub(super) fn synthesise_statement<T: crate::ReadFromFS>(
 			// Labels on invalid statements is caught at parse time
 			synthesise_statement(
 				statement,
-				Some(StatementInformation { label: Some(name.clone()) }),
+				Some(StatementInformation { label: Some(name.to_string()) }),
 				environment,
 				checking_data,
 			);
