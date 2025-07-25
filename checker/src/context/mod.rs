@@ -13,7 +13,6 @@ pub use root::RootContext;
 
 use source_map::SpanWithSource;
 use unified_identifier::UnifiedIdentifierBuf;
-use once_cell::sync::Lazy;
 
 use crate::{
 	context::environment::ExpectedReturnType,

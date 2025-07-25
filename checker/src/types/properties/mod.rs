@@ -5,7 +5,7 @@ pub mod list;
 pub use access::*;
 pub use assignment::set_property;
 pub use list::*;
-use unified_identifier::{UnifiedIdentifierBuf, UnifiedIdentifier};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use super::{Type, TypeStore};
 use crate::{
