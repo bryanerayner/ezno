@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use source_map::{Nullable, Span, SpanWithSource};
+use unified_identifier::UnifiedIdentifierBuf;
 
 use crate::{
 	features::{functions::ClosureId, objects::SpecialObject, regexp::RegExp},
@@ -96,7 +97,7 @@ impl Default for TypeStore {
 				based_on: TypeId::ANY_TYPE,
 			}),
 			Type::RootPolyType(PolyNature::FunctionGeneric {
-				name: "new.target".to_owned(),
+				name: UnifiedIdentifierBuf::new("new.target"),
 				// TODO
 				extends: TypeId::ANY_TYPE,
 			}),
