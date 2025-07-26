@@ -98,40 +98,180 @@ impl ASTNode for ClassMember {
 			return Ok(ClassMember::StaticBlock(Block::from_reader(reader)?));
 		}
 
-		// Special index type annotation
-		// TODO ts
-		// if reader.starts_with('[')
-		// 	&& reader
-		// 		.get_current()
-		// 		.chars()
-		// 		.take_while(|c| c.is_whitespace() || c.is_alphabetic())
-		// 		.after(c == ':')
-		// {
-		// 	// let Token(_, start) = reader.next().unwrap();
-		// 	// let (name, _) = token_as_identifier(
-		// 	// 	reader.next().ok_or_else(parse_lexing_error)?,
-		// 	// 	"class indexer",
-		// 	// )?;
-		// 	// reader.expect(TSXToken::Colon)?;
-		// 	// let indexer_type = TypeAnnotation::from_reader(reader)?;
-		// 	// reader.expect(TSXToken::CloseBracket)?;
-		// 	// reader.expect(TSXToken::Colon)?;
-		// 	// let return_type = TypeAnnotation::from_reader(reader)?;
-		// 	// return Ok(ClassMember::Indexer {
-		// 	// 	name,
-		// 	// 	is_readonly: readonly_position.is_some(),
-		// 	// 	indexer_type,
-		// 	// 	position: start.union(return_type.get_position()),
-		// 	// 	return_type,
-		// 	// });
-		// 	todo!();
-		// }
-
 		let is_readonly = reader.is_keyword_advance("readonly");
 		reader.skip();
 		let start = reader.get_start();
 
 		let header = MethodHeader::from_reader(reader);
+
+
+		// Try the `[` branch first (same shape as interface)
+		if reader.is_operator_advance("[") {
+			// 1) Literal string: `['foo']` — treat as computed key literal (NOT an indexer)
+			if reader.starts_with_string_delimeter() {
+				let (content, quoted) = reader.parse_string_literal()?;
+				// Expect closing bracket for computed key literal
+				let end = reader.expect(']')?;
+				// Build a PropertyKey, then continue to normal method/property parsing
+				let key_pk = PropertyKey::StringLiteral(content.to_owned(), quoted, start.union(end));
+				let key = WithComment::<PropertyKey<PublicOrPrivate>>::None(key_pk);
+				reader.skip();
+
+				// Decide between method and property paths below, reusing existing code:
+				if reader.starts_with('(') || reader.starts_with('<') {
+					let function = ClassFunction::from_reader_with_config(reader, header, key)?;
+					return Ok(ClassMember::Method(is_static, function));
+				} else {
+					if !header.is_no_modifiers() {
+						let (found, position) = crate::lexer::utilities::next_item(reader);
+						return Err(crate::ParseError::new(
+							crate::ParseErrors::ExpectedOperator { expected: "(", found },
+							position,
+						));
+					}
+					let is_optional = reader.is_operator_advance("?:");
+					let type_annotation = if is_optional || reader.is_operator_advance(":") {
+						Some(TypeAnnotation::from_reader(reader)?)
+					} else {
+						None
+					};
+					let value: Option<Box<Expression>> =
+						if reader.is_operator_advance("=") { Some(Box::new(Expression::from_reader(reader)?)) } else { None };
+					let position = start.union(reader.get_end());
+					let property = ClassProperty {
+						is_readonly,
+						is_optional,
+						key,
+						type_annotation,
+						value,
+						position,
+					};
+					return Ok(ClassMember::Property(is_static, property));
+				}
+			}
+			// 2) Numeric literal: `[123]`
+			else if reader.starts_with_number() {
+				let (value, length) = reader.parse_number_literal()?;
+				let end = reader.expect(']')?;
+				let key_pk = PropertyKey::NumberLiteral(value, start.with_length(length as usize).union(end));
+				let key = WithComment::<PropertyKey<PublicOrPrivate>>::None(key_pk);
+				reader.skip();
+
+				if reader.starts_with('(') || reader.starts_with('<') {
+					let function = ClassFunction::from_reader_with_config(reader, header, key)?;
+					return Ok(ClassMember::Method(is_static, function));
+				} else {
+					if !header.is_no_modifiers() {
+						let (found, position) = crate::lexer::utilities::next_item(reader);
+						return Err(crate::ParseError::new(
+							crate::ParseErrors::ExpectedOperator { expected: "(", found },
+							position,
+						));
+					}
+					let is_optional = reader.is_operator_advance("?:");
+					let type_annotation = if is_optional || reader.is_operator_advance(":") {
+						Some(TypeAnnotation::from_reader(reader)?)
+					} else {
+						None
+					};
+					let value: Option<Box<Expression>> =
+						if reader.is_operator_advance("=") { Some(Box::new(Expression::from_reader(reader)?)) } else { None };
+					let position = start.union(reader.get_end());
+					let property = ClassProperty {
+						is_readonly,
+						is_optional,
+						key,
+						type_annotation,
+						value,
+						position,
+					};
+					return Ok(ClassMember::Property(is_static, property));
+				}
+			}
+			// 3) Identifier: potential indexer, mapped rule (invalid here), or computed Symbol
+			else {
+				use crate::Expression;
+				let name_start = reader.get_start();
+				let name = reader.parse_identifier("class indexer parameter name", false)?;
+
+				// Computed property like `[Symbol.iterator]`
+				if reader.is_operator(".") {
+					let top = Expression::VariableReference(name.into(), name_start.with_length(name.len()));
+					let expression = Expression::from_reader_after_first_expression(reader, 0, top)?;
+					let end = reader.expect(']')?;
+					let key_pk = PropertyKey::Computed(Box::new(expression), name_start.union(end));
+					let key = WithComment::<PropertyKey<PublicOrPrivate>>::None(key_pk);
+					reader.skip();
+
+					if reader.starts_with('(') || reader.starts_with('<') {
+						let function = ClassFunction::from_reader_with_config(reader, header, key)?;
+						return Ok(ClassMember::Method(is_static, function));
+					} else {
+						if !header.is_no_modifiers() {
+							let (found, position) = crate::lexer::utilities::next_item(reader);
+							return Err(crate::ParseError::new(
+								crate::ParseErrors::ExpectedOperator { expected: "(", found },
+								position,
+							));
+						}
+						let is_optional = reader.is_operator_advance("?:");
+						let type_annotation = if is_optional || reader.is_operator_advance(":") {
+							Some(TypeAnnotation::from_reader(reader)?)
+						} else {
+							None
+						};
+						let value: Option<Box<Expression>> =
+							if reader.is_operator_advance("=") { Some(Box::new(Expression::from_reader(reader)?)) } else { None };
+						let position = start.union(reader.get_end());
+						let property = ClassProperty {
+							is_readonly,
+							is_optional,
+							key,
+							type_annotation,
+							value,
+							position,
+						};
+						return Ok(ClassMember::Property(is_static, property));
+					}
+				}
+				// True indexer: `[name: T]: U` (only when no modifiers in header)
+				else if reader.is_operator_advance(":") && header.is_no_modifiers() {
+					let indexer_type = TypeAnnotation::from_reader(reader)?;
+					reader.expect(']')?;
+					reader.expect(':')?;
+					let return_type = TypeAnnotation::from_reader(reader)?;
+					let position = start.union(return_type.get_position());
+					return Ok(ClassMember::Indexer {
+						name: name.to_owned(),
+						indexer_type,
+						return_type,
+						is_readonly,
+						position,
+					});
+				}
+				// Mapped types are not valid in classes; give a helpful error
+				else if reader.is_keyword_advance("in") && header.is_no_modifiers() {
+					return Err(crate::ParseError::new(
+					crate::ParseErrors::ExpectedDeclaration,
+					crate::lexer::utilities::current_position(reader),
+				));
+				}
+				// Not an indexer — fall through as syntax error matching interface branch
+				else {
+					return Err(if header.is_no_modifiers() {
+						crate::lexer::utilities::expected_one_of_items(reader, &[".", ":", "in"])
+					} else {
+						crate::lexer::utilities::expected_one_of_items(reader, &["."])
+					});
+				}
+			}
+		}
+
+		// --- end indexer/computed handling ---
+
+
+
+
 		let key =
 			WithComment::<PropertyKey<crate::property_key::PublicOrPrivate>>::from_reader(reader)?;
 		reader.skip();

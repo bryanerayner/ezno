@@ -1261,6 +1261,12 @@ pub(crate) mod utilities {
 		(found, position)
 	}
 
+	pub fn current_position<'a>(reader: &super::Lexer<'a>) -> crate::Span {
+		let current = reader.get_current();
+		let position = reader.get_start().with_length(0);
+		position
+	}
+
 	pub fn expected_one_of_items(
 		reader: &super::Lexer,
 		expected: &'static [&'static str],
