@@ -10,11 +10,11 @@ use ezno_checker::{generate_cache, synthesis::EznoParser};
 
 fn main() {
 	
-	let input = env::args().nth(1).or_else(|| {Some("./checker/definitions/overrides.d.ts".to_string())}).unwrap();
+	let input = env::args().nth(1).or_else(|| {Some("./checker/definitions/super-simple.d.ts".to_string())}).unwrap();
 	let output = env::args().nth(2).or_else(|| {Some("./checker/definitions/internal.ts.d.bin".to_string())}).unwrap();
 
-	let input = env::args().nth(1).or_else(|| {Some("./checker/definitions/indexing-test.d.ts".to_string())}).unwrap();
-	let output = env::args().nth(2).or_else(|| {Some("./checker/definitions/indexing-test.d.ts.d.bin".to_string())}).unwrap();
+	// let input = env::args().nth(1).or_else(|| {Some("./checker/definitions/indexing-test.d.ts".to_string())}).unwrap();
+	// let output = env::args().nth(2).or_else(|| {Some("./checker/definitions/indexing-test.d.ts.d.bin".to_string())}).unwrap();
 
 	// This reader, doesn't lookup in the cache
 	let reader = |path: &std::path::Path| read_to_string(path).ok();
